@@ -44,8 +44,10 @@ async function handle(
   const path = new URL(request.url ?? '/', 'http://localhost').pathname;
   hits.set(path, (hits.get(path) ?? 0) + 1);
 
+  const origin = request.headers.origin;
+
   for (const twin of TWINS) {
-    for (const [name, value] of Object.entries(twin.headers?.(context.mode, path) ?? {})) {
+    for (const [name, value] of Object.entries(twin.headers?.(context.mode, path, origin) ?? {})) {
       response.setHeader(name, value);
     }
   }

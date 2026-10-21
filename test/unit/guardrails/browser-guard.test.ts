@@ -85,4 +85,16 @@ describe('BrowserGuard', () => {
       { hooligan: 'scout', decision: 'allowed', status: 200, bytes: 120 },
     ]);
   });
+
+  it('counts what it blocks and what it lets through', () => {
+    const { guard } = guardWith({});
+
+    expect(guard.stats()).toEqual({ allowed: 0, blocked: 0 });
+
+    guard.noteResponse('GET', 'http://localhost:3000/', 200, 120);
+    guard.noteResponse('GET', 'http://localhost:3000/app.js', 200, 900);
+    guard.noteBlocked('GET', 'http://10.0.0.5/', 'another machine');
+
+    expect(guard.stats()).toEqual({ allowed: 2, blocked: 1 });
+  });
 });

@@ -24,6 +24,8 @@ export class BrowserGuard {
   private readonly log: RequestLog;
   private readonly resolve: Resolver;
   private readonly names = new Map<string, Promise<Decision>>();
+  private allowed = 0;
+  private blocked = 0;
 
   constructor(options: BrowserGuardOptions) {
     this.scope = options.scope;
@@ -50,11 +52,18 @@ export class BrowserGuard {
   }
 
   noteBlocked(method: string, url: string, reason: string): void {
+    this.blocked += 1;
     this.write({ method, url, status: null, decision: 'blocked', reason, bytes: 0 });
   }
 
   noteResponse(method: string, url: string, status: number, bytes: number): void {
+    this.allowed += 1;
     this.write({ method, url, status, decision: 'allowed', bytes });
+  }
+
+  /** How many browser requests were answered and how many were refused. */
+  stats(): { allowed: number; blocked: number } {
+    return { allowed: this.allowed, blocked: this.blocked };
   }
 
   private async lookup(host: string): Promise<Decision> {

@@ -17,7 +17,7 @@ export type Handler = (
 
 /** One hooligan's side of the demo: headers for every response, and routes of its own. */
 export type TwinModule = {
-  headers?: (mode: Mode, path: string) => Record<string, string>;
+  headers?: (mode: Mode, path: string, origin: string | undefined) => Record<string, string>;
   routes?: (mode: Mode) => Record<string, Handler>;
 };
 

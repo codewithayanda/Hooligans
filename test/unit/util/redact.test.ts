@@ -5,6 +5,7 @@ const stripe = ['sk', 'live', 'x'.repeat(24)].join('_');
 const aws = 'AKIA' + 'X'.repeat(16);
 const github = 'ghp_' + 'a'.repeat(36);
 const jwt = ['eyJ' + 'a'.repeat(20), 'b'.repeat(20), 'c'.repeat(20)].join('.');
+const databaseUrl = ['postgres://app', 'hunter2@localhost:5432/app'].join(':');
 
 describe('maskSecret', () => {
   it('keeps the type visible and hides the rest', () => {
@@ -22,7 +23,7 @@ describe('maskSecret', () => {
 
 describe('containsSecret', () => {
   it('recognises the common shapes', () => {
-    for (const secret of [stripe, aws, github, jwt]) {
+    for (const secret of [stripe, aws, github, jwt, databaseUrl]) {
       expect(containsSecret(`before ${secret} after`)).toBe(true);
     }
   });
@@ -42,5 +43,12 @@ describe('redactSecrets', () => {
 
     expect(containsSecret(text)).toBe(false);
     expect(text).toContain('sk_live...xx');
+  });
+
+  it('hides the password in a database address', () => {
+    const text = redactSecrets(`DATABASE_URL=${databaseUrl}`);
+
+    expect(text).not.toContain('hunter2');
+    expect(containsSecret(text)).toBe(false);
   });
 });

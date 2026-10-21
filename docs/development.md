@@ -20,7 +20,7 @@ The project .npmrc installs from the public npm registry, skips install scripts 
 | `npm run typecheck` | Type checks src and test without emitting |
 | `npm run lint` | ESLint, including the rule that keeps network access inside the egress gate |
 | `npm test` | Runs the tests with Vitest |
-| `npm run format` | Prettier on src, test and scripts |
+| `npm run format` | Prettier on src, test and scripts. The report template is left out on purpose, see .prettierignore |
 | `npm run check:comment-style` | No em dashes, comment blocks of at most four lines |
 | `npm run check:lockfile` | The lockfile only resolves from the public registry |
 | `npm run check` | Lint, typecheck, build and test in one go |
@@ -28,6 +28,8 @@ The project .npmrc installs from the public npm registry, skips install scripts 
 After a build, `node dist/cli/index.js --help` lists the commands, and `node dist/cli/index.js report --sample --open` shows a sample report. `node dist/cli/index.js doctor` checks that Node, a browser and the workspace are ready.
 
 `npm run demo` starts the demo app on 127.0.0.1: the vulnerable twin on port 4001 and the fixed twin on port 4002. The Scout tests start the Edge or Chrome that is already installed. They are skipped when no browser can start, unless HOOLIGANS_REQUIRE_BROWSER is 1, which CI sets.
+
+With the demo running, `node dist/cli/index.js scan --url http://127.0.0.1:4001` scans the vulnerable twin and port 4002 scans the fixed one. Each scan writes a folder in `.hooligans/runs` with the report, the app map and the request log.
 
 ## Conventions
 

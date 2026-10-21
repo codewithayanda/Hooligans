@@ -26,7 +26,17 @@ Hooligans never tells you an app is safe, because no scan can. It tells you what
 
 ## Where it is today
 
-Planning. Nothing runs yet. The project structure is in place and the code comes next.
+Early. A scan already works from start to finish for the first two hooligans, Pickpocket and Loudmouth, against an app running on your own machine. The other five are on their way. Until they land, a report says so, for example "Nothing serious found so far, 2 of 7 hooligans ran".
+
+To try it from a clone (it is not published yet):
+
+```bash
+npm install
+npm run build
+node dist/cli/index.js scan --url http://localhost:3000 --open
+```
+
+It needs Microsoft Edge or Google Chrome, which it drives but never downloads. `node dist/cli/index.js doctor` checks that everything is ready.
 
 ## Where it is heading
 

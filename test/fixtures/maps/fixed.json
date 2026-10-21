@@ -1,0 +1,68 @@
+{
+  "entry": "http://localhost:3000/",
+  "mode": "prod",
+  "stack": { "framework": "vite", "backends": [] },
+  "pages": [
+    {
+      "url": "http://localhost:3000/",
+      "status": 200,
+      "headers": {
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'",
+        "content-type": "text/html; charset=utf-8",
+        "referrer-policy": "no-referrer",
+        "set-cookie": "session=[hidden]; Path=/; HttpOnly; SameSite=Lax",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "url": "http://localhost:3000/login",
+      "status": 200,
+      "headers": {
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'",
+        "content-type": "text/html; charset=utf-8",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "url": "http://localhost:3000/pricing",
+      "status": 200,
+      "headers": {
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'",
+        "content-type": "text/html; charset=utf-8",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      }
+    }
+  ],
+  "forms": [
+    {
+      "page": "http://localhost:3000/login",
+      "action": "http://localhost:3000/api/login",
+      "method": "POST",
+      "fields": [
+        { "name": "email", "type": "email" },
+        { "name": "password", "type": "password" }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "method": "GET",
+      "url": "http://localhost:3000/api/products",
+      "status": 200,
+      "sentAuth": false
+    },
+    { "method": "POST", "url": "http://localhost:3000/api/track", "status": 204, "sentAuth": false }
+  ],
+  "assets": [{ "url": "http://localhost:3000/assets/index-4f2a9c1b.js", "kind": "script" }],
+  "cookies": [{ "name": "session", "secure": false, "httpOnly": true, "sameSite": "Lax" }],
+  "leads": [
+    { "url": "http://localhost:3000/admin/", "why": "robots.txt asks crawlers to keep out" }
+  ],
+  "externalHosts": [],
+  "coverage": { "pages": 3, "forms": 1, "calls": 2, "skipped": ["/logout (looks destructive)"] }
+}

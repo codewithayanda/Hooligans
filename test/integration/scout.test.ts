@@ -4,32 +4,14 @@ import { BrowserGuard } from '../../src/guardrails/egress/browser.js';
 import { EgressGate } from '../../src/guardrails/egress/gate.js';
 import { createMemoryLog } from '../../src/guardrails/egress/request-log.js';
 import { scopeFor } from '../../src/guardrails/scope.js';
-import { launchBrowser } from '../../src/scout/browser.js';
 import { runScout } from '../../src/scout/scout.js';
+import { shouldSkipBrowserTests } from '../helpers/browser.js';
 import { startDemo, type Demo, type DemoOptions } from '../helpers/demo.js';
 
 type Scanned = { demo: Demo; map: AppMap; log: ReturnType<typeof createMemoryLog> };
 
-async function probeBrowser(): Promise<{ ok: boolean; reason: string }> {
-  try {
-    const { browser } = await launchBrowser();
-    await browser.close();
-    return { ok: true, reason: '' };
-  } catch (error) {
-    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
-  }
-}
-
-const browser = await probeBrowser();
-const required = process.env.HOOLIGANS_REQUIRE_BROWSER === '1';
-
-if (!browser.ok && !required) {
-  console.warn(
-    `The Scout tests are skipped because no browser could be started:\n${browser.reason}`,
-  );
-}
-
-const describeScout = describe.skipIf(!browser.ok && !required);
+const skip = await shouldSkipBrowserTests('The Scout tests');
+const describeScout = describe.skipIf(skip);
 
 async function scan(options: DemoOptions): Promise<Scanned> {
   const demo = await startDemo(options);

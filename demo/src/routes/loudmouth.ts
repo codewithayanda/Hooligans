@@ -18,10 +18,14 @@ const SESSION_COOKIE: Readonly<Record<Mode, string>> = {
   fixed: 'session=demo-session-value; Path=/; HttpOnly; SameSite=Lax',
 };
 
-/** The Loudmouth twin: what the app says in its headers and cookies. */
+/**
+ * The Loudmouth twin: what the app says in its headers and cookies. The vulnerable twin
+ * allows every origin, and echoes back the origin of a request that names one.
+ */
 export const loudmouth: TwinModule = {
-  headers: (mode, path) => ({
+  headers: (mode, path, origin) => ({
     ...(mode === 'vuln' ? VULNERABLE_HEADERS : FIXED_HEADERS),
+    ...(mode === 'vuln' && origin ? { 'access-control-allow-origin': origin } : {}),
     ...(path === '/' ? { 'set-cookie': SESSION_COOKIE[mode] } : {}),
   }),
 };

@@ -13,6 +13,11 @@ export const SECRET_SHAPES: readonly SecretShape[] = [
     pattern: /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/,
   },
   { name: 'Private key', pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
+  {
+    name: 'Database URL with a password',
+    pattern:
+      /\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis):\/\/[^\s:@/'"]+:[^\s@/'"]+@[^\s'"]+/,
+  },
 ];
 
 /** Keeps at most a quarter of the start and two characters of the end, so the type stays clear. */
