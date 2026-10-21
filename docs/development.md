@@ -25,7 +25,7 @@ The project .npmrc installs from the public npm registry, skips install scripts 
 | `npm run check:lockfile` | The lockfile only resolves from the public registry |
 | `npm run check` | Lint, typecheck, build and test in one go |
 
-After a build, `node dist/cli/index.js --help` lists the commands.
+After a build, `node dist/cli/index.js --help` lists the commands, and `node dist/cli/index.js report --sample --open` shows a sample report.
 
 ## Conventions
 

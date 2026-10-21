@@ -4,6 +4,12 @@ export type Category = 'security' | 'resilience' | 'performance';
 
 export type Confidence = 'high' | 'medium' | 'low';
 
+/** Most serious first. Ranking and scoring read these. */
+export const SEVERITIES: readonly Severity[] = ['critical', 'high', 'medium', 'low'];
+
+/** Most certain first. */
+export const CONFIDENCES: readonly Confidence[] = ['high', 'medium', 'low'];
+
 export type Finding = {
   /** Stable across runs, for example "loudmouth.missing-csp". */
   id: string;
