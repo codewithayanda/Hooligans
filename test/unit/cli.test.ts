@@ -23,7 +23,18 @@ describe('the command line program', () => {
   it('offers the flags from the design', () => {
     const flags = scan?.options.map((option) => option.long);
     expect(flags).toEqual(
-      expect.arrayContaining(['--only', '--stages', '--yes', '--allow-host', '--include-risky']),
+      expect.arrayContaining([
+        '--only',
+        '--stages',
+        '--yes',
+        '--allow-host',
+        '--include-risky',
+        '--load',
+        '--duration',
+        '--json',
+        '--fail-on',
+        '--open',
+      ]),
     );
   });
 });

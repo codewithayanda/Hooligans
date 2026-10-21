@@ -1,0 +1,68 @@
+{
+  "entry": "http://localhost:3000/",
+  "mode": "prod",
+  "stack": { "framework": "nextjs", "backends": ["supabase"] },
+  "pages": [
+    {
+      "url": "http://localhost:3000/",
+      "status": 200,
+      "headers": {
+        "content-security-policy": "default-src 'self'; connect-src 'self' https://abcd.supabase.co",
+        "content-type": "text/html; charset=utf-8",
+        "set-cookie": "NEXT_LOCALE=[hidden]; Path=/; SameSite=Lax",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      }
+    },
+    {
+      "url": "http://localhost:3000/dashboard",
+      "status": 200,
+      "headers": {
+        "content-security-policy": "default-src 'self'; connect-src 'self' https://abcd.supabase.co",
+        "content-type": "text/html; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      }
+    },
+    {
+      "url": "http://localhost:3000/login",
+      "status": 200,
+      "headers": {
+        "content-security-policy": "default-src 'self'; connect-src 'self' https://abcd.supabase.co",
+        "content-type": "text/html; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      }
+    }
+  ],
+  "forms": [
+    {
+      "page": "http://localhost:3000/login",
+      "action": "http://localhost:3000/login",
+      "method": "POST",
+      "fields": [
+        { "name": "email", "type": "email" },
+        { "name": "password", "type": "password" }
+      ]
+    }
+  ],
+  "calls": [
+    { "method": "GET", "url": "http://localhost:3000/api/me", "status": 200, "sentAuth": true },
+    {
+      "method": "GET",
+      "url": "https://abcd.supabase.co/rest/v1/profiles?select=%2A",
+      "status": 200,
+      "sentAuth": true
+    }
+  ],
+  "assets": [
+    { "url": "http://localhost:3000/_next/static/chunks/main-abc123.js", "kind": "script" }
+  ],
+  "cookies": [
+    { "name": "NEXT_LOCALE", "secure": false, "httpOnly": false, "sameSite": "Lax" },
+    { "name": "sb-abcd-auth-token", "secure": false, "httpOnly": false, "sameSite": "Lax" }
+  ],
+  "leads": [],
+  "externalHosts": ["abcd.supabase.co"],
+  "coverage": { "pages": 3, "forms": 1, "calls": 2, "skipped": [] }
+}

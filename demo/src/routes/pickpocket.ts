@@ -8,6 +8,11 @@ function fakeStripeKey(): string {
   return ['sk', 'live', 'x'.repeat(24)].join('_');
 }
 
+/** Built the same way, so no password sits in the source either. */
+function fakeDatabaseUrl(): string {
+  return ['postgres://app', 'hunter2@localhost:5432/app'].join(':');
+}
+
 function bundle(mode: Mode): string {
   if (mode === 'fixed') return appCode();
 
@@ -30,14 +35,20 @@ export const pickpocket: TwinModule = {
               response,
               200,
               'application/json',
-              JSON.stringify({ version: 3, sources: ['src/main.ts'], names: [], mappings: '' }),
+              JSON.stringify({
+                version: 3,
+                sources: ['src/main.ts'],
+                sourcesContent: ['export const price = 10;'],
+                names: [],
+                mappings: '',
+              }),
             ),
           'GET /.env': (_request, response) =>
             send(
               response,
               200,
               'text/plain; charset=utf-8',
-              `STRIPE_SECRET_KEY=${fakeStripeKey()}\nDATABASE_URL=postgres://app:hunter2@localhost:5432/app\n`,
+              `STRIPE_SECRET_KEY=${fakeStripeKey()}\nDATABASE_URL=${fakeDatabaseUrl()}\n`,
             ),
           'GET /.git/config': (_request, response) =>
             send(response, 200, 'text/plain; charset=utf-8', '[core]\n\trepositoryformatversion = 0\n'),

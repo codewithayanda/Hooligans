@@ -25,6 +25,7 @@ import {
 } from './extract.js';
 import { fingerprint } from './fingerprint.js';
 import { gatherLeads } from './leads.js';
+import { assertReachable } from './reach.js';
 
 export type ScoutLimits = { maxPages: number; maxDepth: number; maxSeconds: number };
 
@@ -228,6 +229,8 @@ export async function runScout(options: ScoutOptions): Promise<AppMap> {
   const forms: FormInfo[] = [];
   const skipped = new Set<string>();
   const pending = new Set<Promise<void>>();
+
+  await assertReachable(options.http, options.entry);
 
   const { browser } = await launchBrowser(options.browser);
 
