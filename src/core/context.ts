@@ -7,13 +7,23 @@ export type HttpRequest = {
   url: string;
   headers?: Record<string, string>;
   body?: string;
+  /** Follow redirects (the default), or hand back the redirect response as it is. */
+  redirect?: 'follow' | 'manual';
+  timeoutMs?: number;
+  /** A response bigger than this is cut off, and `truncated` says so. */
+  maxBodyBytes?: number;
+  signal?: AbortSignal;
 };
 
 export type HttpResponse = {
   status: number;
+  /** Names are lower case. Several Set-Cookie headers are joined with a line break. */
   headers: Record<string, string>;
   body: string;
   durationMs: number;
+  truncated: boolean;
+  /** Where the response came from, after any redirects. */
+  url: string;
 };
 
 /** The only way a hooligan reaches the network. The egress gate implements it. */
@@ -27,7 +37,7 @@ export type Caps = {
   maxAttemptsPerMinute: number;
 };
 
-/** Everything a hooligan is given. A first draft, refined when the gate is built. */
+/** Everything a hooligan is given. A first draft, refined as the hooligans arrive. */
 export type HooliganContext = {
   runId: string;
   map: AppMap;

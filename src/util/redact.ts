@@ -28,6 +28,27 @@ export function containsSecret(text: string): boolean {
   return SECRET_SHAPES.some((shape) => shape.pattern.test(text));
 }
 
+const SENSITIVE_PARAMS =
+  /^(?:access_token|api[-_]?key|apikey|auth|authorization|code|key|passwd|password|secret|session|sig|signature|token)$/i;
+
+/** For logs: drops the username, password and fragment, and hides sensitive parameter values. */
+export function redactUrl(raw: string): string {
+  try {
+    const url = new URL(raw);
+    url.username = '';
+    url.password = '';
+    url.hash = '';
+
+    for (const name of [...url.searchParams.keys()]) {
+      if (SENSITIVE_PARAMS.test(name)) url.searchParams.set(name, '[redacted]');
+    }
+
+    return redactSecrets(url.toString());
+  } catch {
+    return redactSecrets(raw);
+  }
+}
+
 /** Replaces every secret found in the text with its masked form. */
 export function redactSecrets(text: string): string {
   return SECRET_SHAPES.reduce(
