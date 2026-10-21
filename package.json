@@ -42,6 +42,7 @@
     "format:check": "prettier --check src test scripts",
     "check:comment-style": "node scripts/check-comment-style.mjs",
     "check:lockfile": "node scripts/check-lockfile.mjs",
+    "demo": "tsc -p demo/tsconfig.json && node demo/dist/server.js",
     "check": "npm run lint && npm run typecheck && npm run build && npm test"
   },
   "prettier": {
@@ -50,7 +51,8 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "commander": "15.0.0"
+    "commander": "15.0.0",
+    "playwright-core": "1.64.1"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -13,6 +13,8 @@ A Scout builds an app map before any hooligan runs. Hooligans read the map and n
 - The Scout is read-only. It follows same-origin links, never submits a form, never clicks a button and skips links that look destructive. It is capped at about 30 pages, depth 3 and 60 seconds.
 - The map holds pages with their headers, forms, network calls, assets, cookies, leads from robots.txt, the sitemap and any OpenAPI file, the external hosts the app talks to, the stack, whether it is a dev server or a production build, and a coverage summary.
 - Dev servers are detected, and the report says that numbers from a dev server are relative.
+- Everything the page returns is treated as untrusted data: sizes are capped and shapes are checked. Cookie values and credentials never go into the map, and addresses are stored with sensitive query values hidden. Everything in the map is sorted, so two maps of the same app can be compared.
+- A helper lists the routes in the map whose names suggest side effects, so stages 2 to 4 can skip them.
 - The Scout drives the Edge or Chrome that is already installed, through playwright-core, so nothing is downloaded.
 - Logging in is done once, by hand. `hooligans login --as alice` opens a visible browser, the user signs in the usual way, and Hooligans saves the session (cookies and local storage) under .hooligans/sessions. No passwords are stored and there is no automatic signup. The folder carries its own .gitignore so nothing in it is committed.
 - Sessions arrive in version 0.2, before Snooper. The Scout accepts an optional session from the start.

@@ -63,7 +63,13 @@ function createBuckets(emit: (entry: LogEntry) => void) {
       currentSecond = second;
     }
 
-    const key = [entry.hooligan, entry.method, withoutQuery(entry.url), entry.status, entry.decision].join('|');
+    const key = [
+      entry.hooligan,
+      entry.method,
+      withoutQuery(entry.url),
+      entry.status,
+      entry.decision,
+    ].join('|');
     const existing = buckets.get(key);
 
     if (existing) {

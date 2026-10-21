@@ -35,5 +35,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm test
+        env:
+          HOOLIGANS_REQUIRE_BROWSER: '1'
       - run: npm run check:comment-style
       - run: npm run check:lockfile

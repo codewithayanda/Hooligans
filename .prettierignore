@@ -1,0 +1,2 @@
+# The report policy hashes the exact bytes between the style and script tags.
+src/report/template.html

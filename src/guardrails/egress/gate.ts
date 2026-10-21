@@ -28,7 +28,7 @@ export class EgressError extends Error {
 export type Resolved = { address: string; family: number };
 export type Resolver = (hostname: string) => Promise<Resolved[]>;
 
-const resolveWithDns: Resolver = async (hostname) => {
+export const resolveWithDns: Resolver = async (hostname) => {
   const records = await dns.lookup(hostname, { all: true, verbatim: true });
   return records.map((record) => ({ address: record.address, family: record.family }));
 };
@@ -91,13 +91,29 @@ function flatten(raw: IncomingHttpHeaders): Record<string, string> {
 }
 
 /** Turns the body into text, undoing compression within the size limit. */
-function decode(body: Buffer, encoding: string | undefined, limit: number): { text: string; truncated: boolean } {
+function decode(
+  body: Buffer,
+  encoding: string | undefined,
+  limit: number,
+): { text: string; truncated: boolean } {
   const name = (encoding ?? '').toLowerCase().trim();
 
   try {
-    if (name === 'gzip') return { text: gunzipSync(body, { maxOutputLength: limit }).toString('utf8'), truncated: false };
-    if (name === 'deflate') return { text: inflateSync(body, { maxOutputLength: limit }).toString('utf8'), truncated: false };
-    if (name === 'br') return { text: brotliDecompressSync(body, { maxOutputLength: limit }).toString('utf8'), truncated: false };
+    if (name === 'gzip')
+      return {
+        text: gunzipSync(body, { maxOutputLength: limit }).toString('utf8'),
+        truncated: false,
+      };
+    if (name === 'deflate')
+      return {
+        text: inflateSync(body, { maxOutputLength: limit }).toString('utf8'),
+        truncated: false,
+      };
+    if (name === 'br')
+      return {
+        text: brotliDecompressSync(body, { maxOutputLength: limit }).toString('utf8'),
+        truncated: false,
+      };
   } catch {
     return { text: '', truncated: true };
   }
@@ -175,7 +191,9 @@ export class EgressGate {
   /** A client that labels its requests with the hooligan that sends them. */
   client(hooligan: string, options: ClientOptions = {}): HttpClient {
     const limiter =
-      options.requestsPerSecond !== undefined ? createRateLimiter(options.requestsPerSecond) : undefined;
+      options.requestsPerSecond !== undefined
+        ? createRateLimiter(options.requestsPerSecond)
+        : undefined;
     const aggregate = options.aggregateLog === true;
 
     return { request: (request) => this.execute(hooligan, request, limiter, aggregate) };
@@ -238,14 +256,33 @@ export class EgressGate {
         if (failure.kind === 'blocked') this.blocked += 1;
 
         this.note(
-          { hooligan, method, url: url.href, status: null, bytes: 0, ms: Date.now() - hopStarted, decision, hop, reason: failure.message },
+          {
+            hooligan,
+            method,
+            url: url.href,
+            status: null,
+            bytes: 0,
+            ms: Date.now() - hopStarted,
+            decision,
+            hop,
+            reason: failure.message,
+          },
           false,
         );
         throw failure;
       }
 
       this.note(
-        { hooligan, method, url: url.href, status: raw.status, bytes: raw.body.length, ms: Date.now() - hopStarted, decision: 'allowed', hop },
+        {
+          hooligan,
+          method,
+          url: url.href,
+          status: raw.status,
+          bytes: raw.body.length,
+          ms: Date.now() - hopStarted,
+          decision: 'allowed',
+          hop,
+        },
         aggregate,
       );
 
@@ -289,19 +326,30 @@ export class EgressGate {
   /** The scope check, plus a direct check when the host is already an IP address. */
   private screen(hooligan: string, url: URL, method: string, hop: number, prefix: string): void {
     const decision = decideRequest(url, method, this.scope);
-    if (!decision.allowed) throw this.refuse(hooligan, method, url.href, hop, `${prefix}${decision.reason}`);
+    if (!decision.allowed)
+      throw this.refuse(hooligan, method, url.href, hop, `${prefix}${decision.reason}`);
 
     const host = normalizeHostname(url.hostname);
     if (isIP(host) !== 0) {
       const address = decideAddress(host, host, this.scope);
-      if (!address.allowed) throw this.refuse(hooligan, method, url.href, hop, `${prefix}${address.reason}`);
+      if (!address.allowed)
+        throw this.refuse(hooligan, method, url.href, hop, `${prefix}${address.reason}`);
     }
   }
 
   /** Logs a refused request and returns the error to throw. */
-  private refuse(hooligan: string, method: string, url: string, hop: number, reason: string): EgressError {
+  private refuse(
+    hooligan: string,
+    method: string,
+    url: string,
+    hop: number,
+    reason: string,
+  ): EgressError {
     this.blocked += 1;
-    this.note({ hooligan, method, url, status: null, bytes: 0, ms: 0, decision: 'blocked', hop, reason }, false);
+    this.note(
+      { hooligan, method, url, status: null, bytes: 0, ms: 0, decision: 'blocked', hop, reason },
+      false,
+    );
     return new EgressError('blocked', reason);
   }
 
@@ -324,14 +372,20 @@ export class EgressGate {
 
           if (!first) {
             const sample = records[0];
-            const verdict = sample ? decideAddress(hostname, sample.address, this.scope) : undefined;
-            const reason = verdict && !verdict.allowed ? verdict.reason : `${hostname} did not resolve.`;
+            const verdict = sample
+              ? decideAddress(hostname, sample.address, this.scope)
+              : undefined;
+            const reason =
+              verdict && !verdict.allowed ? verdict.reason : `${hostname} did not resolve.`;
             callback(new EgressError('blocked', reason), '', 0);
             return;
           }
 
           if (options.all) {
-            callback(null, allowed.map((record) => ({ address: record.address, family: record.family })));
+            callback(
+              null,
+              allowed.map((record) => ({ address: record.address, family: record.family })),
+            );
           } else {
             callback(null, first.address, first.family);
           }
@@ -413,7 +467,9 @@ export class EgressGate {
       });
 
       outgoing.setTimeout(timeoutMs, () => {
-        outgoing.destroy(new EgressError('timeout', `No answer from ${url.host} within ${timeoutMs} ms.`));
+        outgoing.destroy(
+          new EgressError('timeout', `No answer from ${url.host} within ${timeoutMs} ms.`),
+        );
       });
       outgoing.on('error', reject);
 

@@ -29,9 +29,9 @@ describe('buildFixPrompt', () => {
   });
 
   it('refuses to build a prompt that contains a secret', () => {
-    expect(() => buildFixPrompt({ ...parts, problem: `The key ${fakeStripeKey} is exposed.` })).toThrow(
-      /never contain a secret/,
-    );
+    expect(() =>
+      buildFixPrompt({ ...parts, problem: `The key ${fakeStripeKey} is exposed.` }),
+    ).toThrow(/never contain a secret/);
   });
 });
 
@@ -71,6 +71,8 @@ describe('describeStack', () => {
   });
 
   it('ignores names it does not recognise', () => {
-    expect(describeStack({ framework: '<script>', backends: ['unknown'] })).toContain('could not tell');
+    expect(describeStack({ framework: '<script>', backends: ['unknown'] })).toContain(
+      'could not tell',
+    );
   });
 });

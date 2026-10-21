@@ -1,8 +1,7 @@
 import { classifyAddress, isLoopbackName, normalizeHostname, type Scope } from './egress/policy.js';
 
 export type TargetDecision =
-  | { allowed: true; url: URL; origin: string }
-  | { allowed: false; reason: string };
+  { allowed: true; url: URL; origin: string } | { allowed: false; reason: string };
 
 const MAX_LENGTH = 2048;
 

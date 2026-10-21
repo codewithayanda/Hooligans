@@ -50,7 +50,12 @@ describe('scoreFindings', () => {
   });
 
   it('never rises when a finding is added', () => {
-    const all = [...many(2, 'critical'), ...many(3, 'high'), ...many(5, 'medium'), ...many(8, 'low')];
+    const all = [
+      ...many(2, 'critical'),
+      ...many(3, 'high'),
+      ...many(5, 'medium'),
+      ...many(8, 'low'),
+    ];
     let previous = 100;
 
     for (let size = 1; size <= all.length; size += 1) {

@@ -67,7 +67,9 @@ function toneOf(verdict: string): string {
 }
 
 function chip(severity: string): string {
-  const level = Object.hasOwn(SEVERITY_LABEL, severity) ? (severity as keyof typeof SEVERITY_LABEL) : 'low';
+  const level = Object.hasOwn(SEVERITY_LABEL, severity)
+    ? (severity as keyof typeof SEVERITY_LABEL)
+    : 'low';
   return `<span class="chip chip-${level}">${SEVERITY_LABEL[level]}</span>`;
 }
 
@@ -97,7 +99,9 @@ function pageHeader(report: Report): string {
   const banners: string[] = [];
 
   if (report.run.sample) {
-    banners.push('This is a sample report. The findings are made up to show what a report looks like.');
+    banners.push(
+      'This is a sample report. The findings are made up to show what a report looks like.',
+    );
   }
   if (report.run.mode === 'dev') {
     banners.push(
@@ -307,5 +311,8 @@ export function renderHtml(report: Report): string {
     script: COPY_SCRIPT,
   };
 
-  return template.replace(/\{\{(csp|title|styles|body|script)\}\}/g, (_match, key: string) => values[key] ?? '');
+  return template.replace(
+    /\{\{(csp|title|styles|body|script)\}\}/g,
+    (_match, key: string) => values[key] ?? '',
+  );
 }

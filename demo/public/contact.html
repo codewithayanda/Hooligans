@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact</title>
+</head>
+<body>
+<nav>
+  <a href="/">Home</a>
+</nav>
+<main>
+  <h1>Contact</h1>
+  <form action="/api/contact" method="post">
+    <label>Name <input type="text" name="name"></label>
+    <label>Topic
+      <select name="topic">
+        <option value="sales">Sales</option>
+        <option value="support">Support</option>
+      </select>
+    </label>
+    <label>Message <textarea name="message"></textarea></label>
+    <button type="submit">Send</button>
+  </form>
+</main>
+<script type="module" crossorigin src="/assets/index-4f2a9c1b.js"></script>
+</body>
+</html>

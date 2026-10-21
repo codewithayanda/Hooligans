@@ -22,14 +22,16 @@ export const ROSTER: readonly RosterEntry[] = [
     name: 'Loudmouth',
     stage: 1,
     since: '0.1',
-    summary: 'Checks what your app says too loudly: missing security headers, open CORS, weak cookies.',
+    summary:
+      'Checks what your app says too loudly: missing security headers, open CORS, weak cookies.',
   },
   {
     id: 'door-rattler',
     name: 'Door Rattler',
     stage: 2,
     since: '0.1',
-    summary: 'Tries the back doors: open Supabase or Firebase data, routes that answer without a login.',
+    summary:
+      'Tries the back doors: open Supabase or Firebase data, routes that answer without a login.',
   },
   {
     id: 'fat-fingers',
