@@ -77,7 +77,8 @@ export class ScanBudget {
 
   /** Why the scan has to stop, or null while it may go on. */
   exceeded(requestsSent: number): string | null {
-    if (this.now() - this.startedAt >= this.maxMs) return 'The time budget for this scan is used up.';
+    if (this.now() - this.startedAt >= this.maxMs)
+      return 'The time budget for this scan is used up.';
     if (requestsSent >= this.maxRequests) return 'The request budget for this scan is used up.';
     return null;
   }

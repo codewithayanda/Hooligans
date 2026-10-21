@@ -9,7 +9,9 @@ export function parseReport(text: string): Report {
   const version = (data as { schemaVersion?: unknown } | null)?.schemaVersion;
 
   if (typeof data !== 'object' || version !== REPORT_SCHEMA_VERSION) {
-    throw new Error(`This is not a Hooligans report (expected schema version ${REPORT_SCHEMA_VERSION}).`);
+    throw new Error(
+      `This is not a Hooligans report (expected schema version ${REPORT_SCHEMA_VERSION}).`,
+    );
   }
 
   return data as Report;

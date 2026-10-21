@@ -29,4 +29,5 @@ The principle: Hooligans never does more than a stranger could do to the app.
 ## Consequences
 
 - The gate cannot see calls the app's own server makes, cannot know whether a database is production and cannot stop a fork from removing the guardrails. That is why Hooligans asks, skips risky routes and keeps its own power small.
+- WebSocket connections made by a page are not intercepted yet, so a hostile page could open one to another machine. Version 0.1 only scans apps on the user's own machine, which limits the risk, and the gap should be closed before remote targets arrive.
 - docs/safety.md should say this plainly.

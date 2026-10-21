@@ -98,7 +98,8 @@ export function classifyAddress(address: string): AddressClass {
 
 /** Lower case, no brackets around an IPv6 address, no trailing dot. */
 export function normalizeHostname(hostname: string): string {
-  const bare = hostname.startsWith('[') && hostname.endsWith(']') ? hostname.slice(1, -1) : hostname;
+  const bare =
+    hostname.startsWith('[') && hostname.endsWith(']') ? hostname.slice(1, -1) : hostname;
   const lower = bare.toLowerCase();
   return lower.endsWith('.') ? lower.slice(0, -1) : lower;
 }

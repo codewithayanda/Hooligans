@@ -41,7 +41,9 @@ export function formatSummary(report: Report, htmlPath?: string): string {
       const label = (SEVERITY_LABEL[finding.severity] ?? 'Unknown').padEnd(8);
       const paintSeverity = SEVERITY_PAINT[finding.severity] ?? dim;
       const title = cleanText(finding.title, 200);
-      lines.push(`  ${index + 1}. ${paintSeverity(label)} ${title} (${hooliganName(finding.hooligan)})`);
+      lines.push(
+        `  ${index + 1}. ${paintSeverity(label)} ${title} (${hooliganName(finding.hooligan)})`,
+      );
     });
   }
 

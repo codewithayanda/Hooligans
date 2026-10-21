@@ -129,7 +129,11 @@ describe('the egress gate', () => {
     });
     const client = openGate([server.origin]).client('loudmouth');
 
-    const response = await client.request({ method: 'GET', url: server.origin, redirect: 'manual' });
+    const response = await client.request({
+      method: 'GET',
+      url: server.origin,
+      redirect: 'manual',
+    });
 
     expect(response.status).toBe(302);
     expect(response.headers['location']).toBe('/elsewhere');
@@ -201,7 +205,11 @@ describe('the egress gate', () => {
     const server = await app((_request, response) => response.end('x'.repeat(10_000)));
     const client = openGate([server.origin]).client('pickpocket');
 
-    const response = await client.request({ method: 'GET', url: server.origin, maxBodyBytes: 1000 });
+    const response = await client.request({
+      method: 'GET',
+      url: server.origin,
+      maxBodyBytes: 1000,
+    });
 
     expect(response.truncated).toBe(true);
     expect(response.body.length).toBeLessThanOrEqual(1000);

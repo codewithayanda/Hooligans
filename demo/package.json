@@ -1,0 +1,6 @@
+{
+  "name": "hooligans-demo",
+  "private": true,
+  "type": "module",
+  "description": "A deliberately weak app for testing Hooligans. Never deploy it."
+}

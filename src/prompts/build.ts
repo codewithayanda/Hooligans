@@ -17,7 +17,9 @@ export type PromptParts = {
 
 function assertNoSecret(prompt: string): void {
   if (containsSecret(prompt)) {
-    throw new Error('A fix prompt must never contain a secret. Mask it before building the prompt.');
+    throw new Error(
+      'A fix prompt must never contain a secret. Mask it before building the prompt.',
+    );
   }
 }
 

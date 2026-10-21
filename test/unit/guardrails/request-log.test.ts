@@ -103,7 +103,13 @@ describe('createRequestLog', () => {
     expect(written).toHaveLength(2);
 
     const ok = written.find((line) => line.status === 200);
-    expect(ok).toMatchObject({ url: 'http://localhost:3000/api', count: 3, bytes: 300, ms: 36, msMax: 12 });
+    expect(ok).toMatchObject({
+      url: 'http://localhost:3000/api',
+      count: 3,
+      bytes: 300,
+      ms: 36,
+      msMax: 12,
+    });
   });
 
   it('starts a new line when the second changes', () => {

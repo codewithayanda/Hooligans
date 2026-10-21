@@ -63,7 +63,9 @@ export function registerReport(program: Command): void {
         } else {
           const runId = options.run ?? listRunIds(cwd).at(-1);
           if (!runId) {
-            return fail('No reports yet. Try `hooligans report --sample` to see what one looks like.');
+            return fail(
+              'No reports yet. Try `hooligans report --sample` to see what one looks like.',
+            );
           }
           if (!isValidRunId(runId)) return fail(`"${runId}" is not a valid run id.`);
           written = rerender(cwd, runId);

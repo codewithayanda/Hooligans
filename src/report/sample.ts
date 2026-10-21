@@ -31,7 +31,8 @@ function sampleFindings(): Finding[] {
     evidence: 'None of these pages sends a Content-Security-Policy header.',
     fix: 'Add a Content-Security-Policy header that only allows scripts from your own site.',
     problem: 'The app does not send a Content-Security-Policy header on its pages.',
-    change: 'Add a Content-Security-Policy header that only allows scripts and styles from your own site.',
+    change:
+      'Add a Content-Security-Policy header that only allows scripts and styles from your own site.',
     keep: 'Every page must still load its own scripts and styles.',
   } as const;
 
@@ -65,7 +66,8 @@ function sampleFindings(): Finding[] {
       evidence:
         '30 wrong logins in 20 seconds on POST /api/login, using made-up users and random passwords. No 429 and no lockout.',
       fix: 'Limit login attempts per IP and per account, and answer with 429 and a Retry-After header.',
-      problem: 'POST /api/login accepted 30 wrong logins in 20 seconds without slowing down or blocking.',
+      problem:
+        'POST /api/login accepted 30 wrong logins in 20 seconds without slowing down or blocking.',
       change:
         'Add rate limiting to POST /api/login: at most 5 attempts per minute per IP, and return 429 with a Retry-After header.',
       keep: 'Normal logins must keep working.',

@@ -54,7 +54,9 @@ describe('the sample report', () => {
 
   it('shows all seven hooligans of version 0.1', () => {
     const report = sample();
-    const seen = new Set([...report.findings, ...report.worthALook].map((finding) => finding.hooligan));
+    const seen = new Set(
+      [...report.findings, ...report.worthALook].map((finding) => finding.hooligan),
+    );
 
     expect([...seen].sort()).toEqual([
       'brute',

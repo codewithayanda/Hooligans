@@ -81,7 +81,9 @@ describe('decideRequest', () => {
   });
 
   it('refuses a username or password, another scheme and an odd method', () => {
-    expect(decideRequest(new URL('http://user:pw@localhost:3000/'), 'GET', scope).allowed).toBe(false);
+    expect(decideRequest(new URL('http://user:pw@localhost:3000/'), 'GET', scope).allowed).toBe(
+      false,
+    );
     expect(decideRequest(new URL('ftp://localhost:3000/'), 'GET', scope).allowed).toBe(false);
     expect(decideRequest(new URL('http://localhost:3000/'), 'TRACE', scope).allowed).toBe(false);
   });
