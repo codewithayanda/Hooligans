@@ -18,7 +18,7 @@ The principle: Hooligans never does more than a stranger could do to the app.
 
 1. Version 0.1 only tests apps on the user's own machine (localhost, 127.0.0.1 and [::1]). Anything else is refused. Remote targets come later, with an ownership check.
 2. Every request goes through one gate in the code, not a local proxy. The gate resolves the hostname, checks the resolved address, connects to that exact address, re-checks every redirect and logs the request. A lint rule keeps network access out of everything else.
-3. The Scout's browser may reach the public internet but never private addresses other than the app's own origin. It runs in a clean profile with downloads blocked.
+3. The Scout's browser may reach the public internet and other ports on the user's own machine, because a separate API port is common. It may never reach other machines on the user's network: private, link-local and metadata addresses. It runs in a clean profile with downloads blocked.
 4. Stage 1 always runs. Stages 2 to 4 write junk data, so they only run after the user confirms that the database behind the app is a dev or test copy.
 5. A secret that is found is masked and never used or tested. A service role key is never used. Probes of a third-party backend are read-only, use the public key the app already ships and need the user's confirmation. Brute uses made-up identities and random wrong passwords. There is no port scanning and no host discovery.
 6. Payloads only prove reflection or error leaks. Nothing deletes or changes data, runs a command, reads a file or calls internal addresses.
