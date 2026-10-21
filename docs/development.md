@@ -1,0 +1,38 @@
+# Development
+
+## Requirements
+
+Node 22.13 or newer (.nvmrc suggests 24) and npm.
+
+## Setup
+
+```bash
+npm install
+```
+
+The project .npmrc installs from the public npm registry, skips install scripts and saves exact versions. After an install, `npm run check:lockfile` confirms that the lockfile only points at the public registry.
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `npm run build` | Compiles to dist and copies the report assets |
+| `npm run typecheck` | Type checks src and test without emitting |
+| `npm run lint` | ESLint, including the rule that keeps network access inside the egress gate |
+| `npm test` | Runs the tests with Vitest |
+| `npm run format` | Prettier on src, test and scripts |
+| `npm run check:comment-style` | No em dashes, comment blocks of at most four lines |
+| `npm run check:lockfile` | The lockfile only resolves from the public registry |
+| `npm run check` | Lint, typecheck, build and test in one go |
+
+After a build, `node dist/cli/index.js --help` lists the commands.
+
+## Conventions
+
+- Conventional commit titles, squash merge, one pull request per roadmap step.
+- Relative imports end in .js, even in TypeScript files.
+- No em dashes, and comments of at most four lines.
+
+## Releases
+
+Releases are published from GitHub Actions with provenance. Nothing is published from a developer machine. The package stays private until the first release.

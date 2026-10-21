@@ -1,0 +1,64 @@
+{
+  "name": "hooligans",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A rehearsal for your app before real users show up.",
+  "keywords": [
+    "testing",
+    "security",
+    "load-testing",
+    "qa",
+    "vibe-coding",
+    "cli"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codewithayanda/Hooligans.git"
+  },
+  "bugs": {
+    "url": "https://github.com/codewithayanda/Hooligans/issues"
+  },
+  "homepage": "https://github.com/codewithayanda/Hooligans#readme",
+  "type": "module",
+  "bin": {
+    "hooligans": "dist/cli/index.js",
+    "hooligan": "dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "format": "prettier --write src test scripts",
+    "format:check": "prettier --check src test scripts",
+    "check:comment-style": "node scripts/check-comment-style.mjs",
+    "check:lockfile": "node scripts/check-lockfile.mjs",
+    "check": "npm run lint && npm run typecheck && npm run build && npm test"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "printWidth": 100,
+    "trailingComma": "all"
+  },
+  "dependencies": {
+    "commander": "15.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "22.20.5",
+    "eslint": "10.13.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "5.0.5"
+  }
+}
