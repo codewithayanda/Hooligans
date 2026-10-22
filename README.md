@@ -26,7 +26,7 @@ Hooligans never tells you an app is safe, because no scan can. It tells you what
 
 ## Where it is today
 
-Early. A scan already works from start to finish for the first two hooligans, Pickpocket and Loudmouth, against an app running on your own machine. The other five are on their way. Until they land, a report says so, for example "Nothing serious found so far, 2 of 7 hooligans ran".
+Early. A scan already works from start to finish for five hooligans, against an app running on your own machine. Pickpocket and Loudmouth only look. Door Rattler, Fat Fingers and Vandal poke: they type into your forms and read what a stranger could read, and that can leave junk data behind, so they ask first. Brute and The Mob are on their way. Until they land, a report says so, for example "Nothing serious found so far, 5 of 7 hooligans ran".
 
 To try it from a clone (it is not published yet):
 
@@ -34,6 +34,12 @@ To try it from a clone (it is not published yet):
 npm install
 npm run build
 node dist/cli/index.js scan --url http://localhost:3000 --open
+```
+
+That run only looks. To let the hooligans poke as well, say that the database behind your app is a dev or test copy:
+
+```bash
+node dist/cli/index.js scan --url http://localhost:3000 --yes --open
 ```
 
 It needs Microsoft Edge or Google Chrome, which it drives but never downloads. `node dist/cli/index.js doctor` checks that everything is ready.

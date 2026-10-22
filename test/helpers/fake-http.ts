@@ -2,7 +2,10 @@ import type { HttpClient, HttpRequest, HttpResponse } from '../../src/core/conte
 import { EgressError } from '../../src/guardrails/egress/gate.js';
 
 export type FakeReply = { status?: number; headers?: Record<string, string>; body?: string };
-export type FakeRoute = FakeReply | 'network-error' | ((request: HttpRequest) => FakeReply);
+export type FakeRoute =
+  | FakeReply
+  | 'network-error'
+  | ((request: HttpRequest) => FakeReply | EgressError);
 export type FakeHttp = HttpClient & { requests: HttpRequest[] };
 
 const NOT_FOUND: FakeReply = {
@@ -24,6 +27,8 @@ export function fakeHttp(routes: Record<string, FakeRoute> = {}): FakeHttp {
       if (route === 'network-error') throw new EgressError('network', 'No answer.');
 
       const reply = typeof route === 'function' ? route(request) : (route ?? NOT_FOUND);
+      if (reply instanceof EgressError) throw reply;
+
       const headers: Record<string, string> = {};
       for (const [name, value] of Object.entries(reply.headers ?? {})) {
         headers[name.toLowerCase()] = value;

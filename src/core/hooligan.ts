@@ -18,5 +18,7 @@ export type Hooligan = {
   summary: string;
   /** How many saved logins it needs. Everything in version 0.1 needs none. */
   sessions: 0 | 1 | 2;
+  /** The most requests a second this hooligan sends. Leave it out for no limit. */
+  requestsPerSecond?: number;
   run(context: HooliganContext): Promise<HooliganResult>;
 };

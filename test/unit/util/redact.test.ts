@@ -6,6 +6,7 @@ const aws = 'AKIA' + 'X'.repeat(16);
 const github = 'ghp_' + 'a'.repeat(36);
 const jwt = ['eyJ' + 'a'.repeat(20), 'b'.repeat(20), 'c'.repeat(20)].join('.');
 const databaseUrl = ['postgres://app', 'hunter2@localhost:5432/app'].join(':');
+const supabaseSecret = ['sb', 'secret', 'a'.repeat(24)].join('_');
 
 describe('maskSecret', () => {
   it('keeps the type visible and hides the rest', () => {
@@ -23,7 +24,7 @@ describe('maskSecret', () => {
 
 describe('containsSecret', () => {
   it('recognises the common shapes', () => {
-    for (const secret of [stripe, aws, github, jwt, databaseUrl]) {
+    for (const secret of [stripe, aws, github, jwt, databaseUrl, supabaseSecret]) {
       expect(containsSecret(`before ${secret} after`)).toBe(true);
     }
   });

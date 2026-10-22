@@ -1,5 +1,6 @@
 import type { Confidence, Severity } from '../../core/finding.js';
 import { SECRET_SHAPES } from '../../util/redact.js';
+import { jwtRole } from '../_shared/jwt.js';
 
 export type SecretKind = {
   id: string;
@@ -105,6 +106,14 @@ const SERVICE_ROLE = kind(
   'The service_role key skips all of your Supabase security rules, so anyone with it can read and change every table. Create a new one in the Supabase dashboard (Project settings, API) and use it on your server only.',
 );
 
+const SUPABASE_SECRET = kind(
+  'supabase-secret-key',
+  'a Supabase secret key',
+  'critical',
+  'high',
+  'A Supabase secret key skips all of your security rules, so anyone with it can read and change every table. Create a new one in the Supabase dashboard (Project settings, API keys) and use it on your server only.',
+);
+
 const SIGNED_TOKEN = kind(
   'signed-token',
   'a signed login token',
@@ -124,19 +133,6 @@ const OTHER = kind(
 /** Some shapes also match harmless text, so those need a second look. */
 function looksRandom(value: string): boolean {
   return value.length >= 32 && /\d/.test(value) && /[A-Za-z]/.test(value);
-}
-
-function jwtRole(token: string): string | null {
-  const payload = token.split('.')[1];
-  if (!payload) return null;
-
-  try {
-    const claims: unknown = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    const role = (claims as { role?: unknown } | null)?.role;
-    return typeof role === 'string' ? role : null;
-  } catch {
-    return null;
-  }
 }
 
 /** A Supabase anon key is public by design. A service_role key is not. */
@@ -163,6 +159,7 @@ const CLASSIFIERS: Readonly<Record<string, Classifier>> = {
   'OpenAI style key': (value) => (looksRandom(value) ? AI_KEY : null),
   'JSON web token': classifyJwt,
   'Private key': () => PRIVATE_KEY,
+  'Supabase secret key': () => SUPABASE_SECRET,
   'Database URL with a password': classifyDatabaseUrl,
 };
 

@@ -184,6 +184,19 @@ describe('runScan: a scan of stage 1', () => {
     expect(seen).toEqual({ runId: 'test-run', entry: 'http://localhost:3000/', users: 40 });
   });
 
+  it('tells each hooligan which hosts were confirmed, and whether risky routes are in', async () => {
+    let seen: Pick<HooliganContext, 'confirmedHosts' | 'includeRisky'> | undefined;
+    const spy = fake('pickpocket', async (context) => {
+      seen = { confirmedHosts: context.confirmedHosts, includeRisky: context.includeRisky };
+      return { findings: [] };
+    });
+    const config = configFor({ allowHosts: ['Abcd.Supabase.co'], includeRisky: true });
+
+    await runScan(config, depsFor([spy]).deps);
+
+    expect(seen).toEqual({ confirmedHosts: ['abcd.supabase.co'], includeRisky: true });
+  });
+
   it('stamps each finding with the hooligan that found it', async () => {
     const wrong = makeFinding({ hooligan: 'someone-else' });
     const registry = [fake('pickpocket', async () => ({ findings: [wrong] }))];

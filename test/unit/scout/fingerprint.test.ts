@@ -100,6 +100,34 @@ describe('hosted backends', () => {
     expect(result.backendHosts).toEqual(['my-app.firebaseio.com']);
   });
 
+  it('finds the newer address of a Firebase Realtime Database', () => {
+    const host = 'my-db-default-rtdb.europe-west1.firebasedatabase.app';
+    const result = print([`${app}/`], { scripts: [`databaseURL: "https://${host}"`] });
+
+    expect(result.backends).toEqual(['firebase']);
+    expect(result.backendHosts).toEqual([host]);
+  });
+
+  it('only takes a host that ends where a backend host ends', () => {
+    const text =
+      'see https://docs.supabase.com, https://abcd.supabase.co.example.org/x and (ABCD.Supabase.CO).';
+    const result = print([`${app}/`], { scripts: [text] });
+
+    expect(result.backendHosts).toEqual(['abcd.supabase.co']);
+  });
+
+  it('reads a big script in a moment, even one with a long inline source map', () => {
+    const sourceMap = 'Ab3'.repeat(40_000);
+    const chain = 'a.'.repeat(15_000);
+    const script = `${sourceMap}\n${chain}\n"https://xyz.supabase.co" "https://my-app.firebaseio.com"`;
+
+    const started = performance.now();
+    const result = print([`${app}/`], { scripts: [script] });
+
+    expect(performance.now() - started).toBeLessThan(2_000);
+    expect(result.backendHosts).toEqual(['my-app.firebaseio.com', 'xyz.supabase.co']);
+  });
+
   it('lists several backends in order', () => {
     const result = print(['https://abcd.supabase.co/x', 'https://my-app.firebaseio.com/y']);
 
@@ -111,6 +139,7 @@ describe('isBackendHost', () => {
   it('knows the hosted backends it looks for', () => {
     expect(isBackendHost('abcd.supabase.co')).toBe(true);
     expect(isBackendHost('FIREBASEIO.COM')).toBe(true);
+    expect(isBackendHost('my-db.europe-west1.firebasedatabase.app')).toBe(true);
     expect(isBackendHost('example.com')).toBe(false);
   });
 });

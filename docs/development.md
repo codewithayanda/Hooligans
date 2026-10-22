@@ -31,6 +31,8 @@ After a build, `node dist/cli/index.js --help` lists the commands, and `node dis
 
 With the demo running, `node dist/cli/index.js scan --url http://127.0.0.1:4001` scans the vulnerable twin and port 4002 scans the fixed one. Each scan writes a folder in `.hooligans/runs` with the report, the app map and the request log.
 
+Add `--yes` to run stage 2 as well (Door Rattler, Fat Fingers and Vandal). The demo has no database, so that is safe here: the only junk is a few form posts marked with hooligans-runId. Stage 2 takes a minute or so, because Fat Fingers and Vandal send two requests a second on purpose.
+
 ## Conventions
 
 - Conventional commit titles, squash merge, one pull request per roadmap step.

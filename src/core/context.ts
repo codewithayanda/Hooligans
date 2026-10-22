@@ -43,4 +43,8 @@ export type HooliganContext = {
   map: AppMap;
   http: HttpClient;
   caps: Caps;
+  /** Third-party hosts the user confirmed are theirs, in lower case. */
+  confirmedHosts: readonly string[];
+  /** The user asked for routes that look like they have side effects to be included. */
+  includeRisky: boolean;
 };

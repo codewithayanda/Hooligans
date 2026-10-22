@@ -86,6 +86,7 @@ describeScout('the Scout against the demo', () => {
 
     expect(demo.hits('/api/login')).toBe(0);
     expect(demo.hits('/api/contact')).toBe(0);
+    expect(demo.hits('/search')).toBe(0);
   });
 
   it('records the forms and their fields', () => {
