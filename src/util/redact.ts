@@ -13,6 +13,7 @@ export const SECRET_SHAPES: readonly SecretShape[] = [
     pattern: /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/,
   },
   { name: 'Private key', pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
+  { name: 'Supabase secret key', pattern: /sb_secret_[A-Za-z0-9_-]{20,}/ },
   {
     name: 'Database URL with a password',
     pattern:

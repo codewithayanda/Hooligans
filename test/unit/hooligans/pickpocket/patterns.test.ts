@@ -14,6 +14,7 @@ const stripeTest = ['sk', 'test', 'x'.repeat(24)].join('_');
 const aws = 'AKIA' + 'X'.repeat(16);
 const github = 'ghp_' + 'a'.repeat(36);
 const slack = ['xoxb', '1'.repeat(12)].join('-');
+const supabaseSecret = ['sb', 'secret', 'a'.repeat(24)].join('_');
 const google = 'AIza' + 'a'.repeat(35);
 const aiKey = ['sk', 'a1'.repeat(20)].join('-');
 const dashes = '-'.repeat(5);
@@ -42,6 +43,7 @@ describe('findSecrets', () => {
     ['a Google key', google, 'low', 'google-api-key'],
     ['an AI service key', aiKey, 'high', 'ai-api-key'],
     ['a private key', privateKey, 'critical', 'private-key'],
+    ['a Supabase secret key', supabaseSecret, 'critical', 'supabase-secret-key'],
     ['a database address', databaseUrl, 'critical', 'database-url'],
     ['a service_role key', jwt({ role: 'service_role' }), 'critical', 'supabase-service-role-key'],
     ['any other signed token', jwt({ role: 'authenticated' }), 'low', 'signed-token'],

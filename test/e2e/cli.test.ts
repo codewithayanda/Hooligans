@@ -102,11 +102,31 @@ describe.skipIf(skipScans)('hooligans scan against the demo', () => {
   it('exits 1 and prints a report when the vulnerable twin has a serious finding', async () => {
     const run = await runCli(['scan', '--url', vulnerable.origin, '--json', '--fail-on', 'high']);
     const report = parseReport(run.stdout);
+    const left = report.skipped.filter((item) => item.reason.includes('dev or test copy'));
 
     expect(run.code).toBe(1);
     expect(report.findings.length).toBeGreaterThan(0);
     expect(report.score.value).toBeLessThan(40);
     expect(run.stderr).toContain('Report:');
+    expect(left.map((item) => item.id).sort()).toEqual(['door-rattler', 'fat-fingers', 'vandal']);
+    expect(report.activity.writes).toBe(0);
+  });
+
+  it('runs stage 2 with --yes, and finds what each of its hooligans is for', async () => {
+    const run = await runCli(['scan', '--url', vulnerable.origin, '--yes', '--json']);
+    const report = parseReport(run.stdout);
+    const ids = report.findings.map((finding) => finding.id);
+
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        'door-rattler.open-table',
+        'fat-fingers.stack-trace',
+        'vandal.reflected-input',
+        'vandal.sql-error',
+      ]),
+    );
+    expect(report.score.ran).toBe(5);
+    expect(report.activity.cleanupMarker).toMatch(/^hooligans-/);
   });
 
   it('exits 0 and prints the summary for the fixed twin, without calling it safe', async () => {

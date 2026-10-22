@@ -40,10 +40,21 @@ const PROD_PATHS: readonly RegExp[] = [
 const SUPABASE_HOST = /(?:^|\.)supabase\.(?:co|in)$/;
 const SUPABASE_PATH = /^\/(?:rest|auth|storage|functions)\/v1\//;
 const FIREBASE_HOST =
-  /(?:^|\.)(?:firebaseio\.com|firebaseapp\.com|firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com|firebasestorage\.googleapis\.com)$/;
+  /(?:^|\.)(?:firebaseio\.com|firebasedatabase\.app|firebaseapp\.com|firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com|firebasestorage\.googleapis\.com)$/;
 
-const SUPABASE_IN_TEXT = /[a-z0-9-]+\.supabase\.(?:co|in)/gi;
-const FIREBASE_IN_TEXT = /[a-z0-9-]+\.(?:firebaseio\.com|firebaseapp\.com)/gi;
+/** What a hosted backend address ends in, the characters of its name, and how far back to read. */
+type HostShape = { ending: RegExp; allowed: RegExp; reach: number };
+
+const SUPABASE_IN_TEXT: HostShape = {
+  ending: /\.supabase\.(?:co|in)(?![a-z0-9-]|\.[a-z0-9])/gi,
+  allowed: /[a-z0-9-]/i,
+  reach: 63,
+};
+const FIREBASE_IN_TEXT: HostShape = {
+  ending: /\.(?:firebaseio\.com|firebasedatabase\.app|firebaseapp\.com)(?![a-z0-9-]|\.[a-z0-9])/gi,
+  allowed: /[a-z0-9.-]/i,
+  reach: 253,
+};
 
 function parse(url: string): URL | null {
   try {
@@ -51,6 +62,29 @@ function parse(url: string): URL | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Finds each ending first and reads the name backwards from it. A pattern that starts with a long
+ * run of name characters takes quadratic time on a big script, such as one with a source map.
+ */
+function hostsIn(text: string, shape: HostShape): string[] {
+  const hosts: string[] = [];
+
+  for (const match of text.matchAll(shape.ending)) {
+    const dot = match.index;
+    let start = dot;
+    while (start > 0 && dot - start < shape.reach && shape.allowed.test(text.charAt(start - 1))) {
+      start -= 1;
+    }
+
+    const name = text.slice(start, dot).replace(/^[.-]+/, '');
+    if (name === '' || name.split('.').includes('')) continue;
+
+    hosts.push(`${name}${match[0]}`.toLowerCase());
+  }
+
+  return hosts;
 }
 
 export function isBackendHost(host: string): boolean {
@@ -86,8 +120,8 @@ export function fingerprint(input: FingerprintInput): Fingerprint {
     if (isBackendHost(host)) hosts.add(host);
   }
   for (const script of input.scripts) {
-    for (const pattern of [SUPABASE_IN_TEXT, FIREBASE_IN_TEXT]) {
-      for (const match of script.matchAll(pattern)) hosts.add((match[0] ?? '').toLowerCase());
+    for (const shape of [SUPABASE_IN_TEXT, FIREBASE_IN_TEXT]) {
+      for (const host of hostsIn(script, shape)) hosts.add(host);
     }
   }
 

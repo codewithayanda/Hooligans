@@ -49,3 +49,8 @@ export function newRunId(now: Date = new Date()): string {
   const stamp = now.toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15);
   return `${stamp}-${randomBytes(2).toString('hex')}`;
 }
+
+/** What Hooligans puts in everything it types into an app, so the junk can be found and removed. */
+export function cleanupMarker(runId: string): string {
+  return `hooligans-${runId}`;
+}

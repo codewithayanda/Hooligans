@@ -13,7 +13,7 @@ import { isBackendHost } from '../scout/fingerprint.js';
 import { AppNotReachable } from '../scout/reach.js';
 import type { ScoutOptions } from '../scout/scout.js';
 import { cleanText } from '../util/text.js';
-import { newRunId, runDirectory } from '../util/workspace.js';
+import { cleanupMarker, newRunId, runDirectory } from '../util/workspace.js';
 import type { AppMap } from './app-map.js';
 import type { ScanConfig } from './config.js';
 import { SEVERITIES, type Finding, type Severity } from './finding.js';
@@ -39,6 +39,8 @@ export type ScanDeps = {
   /** Aborted when the user presses Ctrl+C. */
   signal?: AbortSignal;
   runId?: string;
+  /** Replaces the pace each hooligan asks for. Tests use it so the demo does not slow them down. */
+  requestsPerSecond?: number;
 };
 
 export type ScanOutcome =
@@ -225,7 +227,15 @@ export async function runScan(config: ScanConfig, deps: ScanDeps): Promise<ScanO
         deps.progress.step(`${hooligan.name}: ${hooligan.summary}`);
 
         try {
-          const result = await hooligan.run({ runId, map, http: gate.client(hooligan.id), caps });
+          const pace = deps.requestsPerSecond ?? hooligan.requestsPerSecond;
+          const result = await hooligan.run({
+            runId,
+            map,
+            http: gate.client(hooligan.id, pace === undefined ? {} : { requestsPerSecond: pace }),
+            caps,
+            confirmedHosts: consent.confirmedHosts,
+            includeRisky: config.includeRisky,
+          });
           findings.push(
             ...result.findings.map((finding) => ({ ...finding, hooligan: hooligan.id })),
           );
@@ -263,7 +273,7 @@ export async function runScan(config: ScanConfig, deps: ScanDeps): Promise<ScanO
         requestsSent: sent(),
         requestsBlocked: scoutGate.stats().blocked + gate.stats().blocked + guard.stats().blocked,
         writes,
-        cleanupMarker: writes > 0 ? `hooligans-${runId}` : null,
+        cleanupMarker: writes > 0 ? cleanupMarker(runId) : null,
       },
     });
 
