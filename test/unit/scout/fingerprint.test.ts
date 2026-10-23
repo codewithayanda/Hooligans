@@ -67,6 +67,73 @@ describe('framework and mode', () => {
   });
 });
 
+describe('Angular', () => {
+  it('recognises a production build by its hashed bundles', () => {
+    const result = print([
+      `${app}/`,
+      `${app}/polyfills-FFHMD2TL.js`,
+      `${app}/main-L6V6ZVEC.js`,
+      `${app}/styles-5INURTSO.css`,
+    ]);
+
+    expect(result.framework).toBe('angular');
+    expect(result.mode).toBe('prod');
+  });
+
+  it('recognises an older production build by its hashed bundles', () => {
+    const result = print([`${app}/runtime.0123456789abcdef.js`, `${app}/main.fedcba9876543210.js`]);
+
+    expect(result.framework).toBe('angular');
+    expect(result.mode).toBe('prod');
+  });
+
+  it('calls a dev server Angular, not Vite, which it is built on', () => {
+    const result = print([`${app}/@vite/client`, `${app}/main.js`, `${app}/chunk-ABCD1234.js`], {
+      scripts: ['import { Component } from "@angular/core";'],
+    });
+
+    expect(result.framework).toBe('angular');
+    expect(result.mode).toBe('dev');
+  });
+
+  it('recognises a classic dev server by its three bundles without a hash', () => {
+    const result = print([`${app}/runtime.js`, `${app}/polyfills.js`, `${app}/main.js`]);
+
+    expect(result.framework).toBe('angular');
+    expect(result.mode).toBe('dev');
+  });
+
+  it('recognises the version attribute in a script when no file name gives it away', () => {
+    const result = print([`${app}/bundle.js`], {
+      scripts: ['host.setAttribute("ng-version", "19.2.1")'],
+    });
+
+    expect(result.framework).toBe('angular');
+    expect(result.mode).toBe('unknown');
+  });
+
+  it('does not take a Vite app with a main.js for Angular', () => {
+    const result = print([`${app}/@vite/client`, `${app}/main.js`]);
+
+    expect(result.framework).toBe('vite');
+  });
+
+  it('does not take one hashed file name for Angular', () => {
+    const result = print([`${app}/main.fedcba9876543210.js`]);
+
+    expect(result.framework).toBeUndefined();
+    expect(result.mode).toBe('prod');
+  });
+
+  it('keeps Next.js when its files show as well', () => {
+    const result = print([`${app}/_next/static/chunks/main-abc123.js`], {
+      scripts: ['ng-version'],
+    });
+
+    expect(result.framework).toBe('nextjs');
+  });
+});
+
 describe('hosted backends', () => {
   it('finds Supabase from a request host', () => {
     const result = print(['https://abcd.supabase.co/rest/v1/orders']);

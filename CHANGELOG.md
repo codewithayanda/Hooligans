@@ -23,11 +23,18 @@ All notable changes to Hooligans are listed here. The format follows Keep a Chan
 - Brute checks whether a login, a signup and a password reset push back after repeated wrong attempts, with made-up accounts and random passwords, at most 30 attempts a minute. It stops at the first 429 or other sign of a limit. A login that a single page app sends from JavaScript is learned by submitting its form once in a browser.
 - The Mob sends a growing crowd of visitors, reading pages and calls only, and stops at the first step where requests fail or the app answers 429. The report shows a chart and a table of each step, and the terminal summary has a line about it. `--load` and `--duration` now set the size and the length of the run.
 - The demo has a login with and without a limit, a signup, a password reset, a login that sends JSON from a page script, and a small pool of connections that gives way under a crowd in the vulnerable twin.
+- The Scout recognises Angular, in a production build and on a dev server, and tells it apart from Vite, which its dev server is built on. Fix prompts say "an Angular app".
+- Header findings on an app with no server of its own say where the header goes on the common hosts: a `_headers` file on Netlify and Cloudflare Pages, `vercel.json` on Vercel, and that GitHub Pages cannot set headers and can only carry a policy in a meta tag.
+- `hooligans scan` without `--url` asks which address the app is running on, in plain words. It accepts `3000` or `localhost:3000` as well as a full address, and refuses anything that is not on your own machine.
+- A coverage map in the README, and the pages `docs/roster.md`, `docs/safety.md` and `docs/architecture.md`, with a test that keeps the roster page in step with the roster.
 
 ### Changed
 
 - Pickpocket recognises a Supabase secret key, and the Scout recognises the newer address of a Firebase Realtime Database.
+- The question about the database is asked in everyday words, and says plainly when the Scout saw a hosted backend that might hold live data.
 
 ### Fixed
 
 - The Scout no longer stalls on an app whose scripts carry a large inline source map, which is what an Angular dev server sends. Finding a Supabase or Firebase address in a script now takes time in proportion to the size of the script.
+- Fix prompts say "an Express app" instead of "a Express app".
+- A question that the terminal closes on, such as with Ctrl+C, no longer leaves the command waiting.

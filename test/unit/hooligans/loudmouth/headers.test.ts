@@ -86,13 +86,14 @@ describe('checkHeaders', () => {
 });
 
 describe('the fix, in the words of the stack', () => {
-  function promptFor(framework: string | undefined): string {
+  function find(framework: string | undefined, id = 'loudmouth.missing-csp') {
     const stack: AppMap['stack'] = framework ? { framework, backends: [] } : { backends: [] };
-    const csp = checkHeaders(makeMap({ stack, pages: [bare] })).find(
-      (finding) => finding.id === 'loudmouth.missing-csp',
-    );
 
-    return csp?.fixPrompt ?? '';
+    return checkHeaders(makeMap({ stack, pages: [bare] })).find((finding) => finding.id === id);
+  }
+
+  function promptFor(framework: string | undefined, id?: string): string {
+    return find(framework, id)?.fixPrompt ?? '';
   }
 
   it('speaks Next.js to a Next.js app', () => {
@@ -109,6 +110,49 @@ describe('the fix, in the words of the stack', () => {
 
   it('stays general when the stack is not known', () => {
     expect(promptFor(undefined)).toContain('in your server or hosting settings');
+  });
+
+  it('tells an Angular app that its host sets the header, and how to ship the file', () => {
+    const prompt = promptFor('angular');
+
+    expect(prompt).toContain('Angular only builds your files');
+    expect(prompt).toContain('assets list in angular.json');
+    expect(prompt).toContain('_headers');
+  });
+
+  it('tells a Vite app where the file goes in its build', () => {
+    expect(promptFor('vite')).toContain('public folder');
+  });
+
+  it('lists the common hosts for an app with no server of its own', () => {
+    for (const framework of ['vite', 'angular', undefined]) {
+      const prompt = promptFor(framework);
+
+      expect(prompt).toContain('Netlify or Cloudflare Pages');
+      expect(prompt).toContain('vercel.json');
+      expect(prompt).toContain('GitHub Pages');
+    }
+  });
+
+  it('keeps static hosts out of the advice for an app that has a server of its own', () => {
+    for (const framework of ['nextjs', 'express']) {
+      expect(promptFor(framework)).not.toContain('_headers');
+      expect(find(framework)?.fix).not.toContain('Where you set it depends on your host');
+    }
+  });
+
+  it('says plainly that GitHub Pages can only carry the policy, in a meta tag', () => {
+    expect(promptFor('vite')).toContain('meta tag');
+    expect(promptFor('vite', 'loudmouth.missing-nosniff')).toContain(
+      'cannot set this header at all',
+    );
+  });
+
+  it('puts the same advice in the plain explanation', () => {
+    const fix = find('angular')?.fix ?? '';
+
+    expect(fix).toContain('Where you set it depends on your host');
+    expect(fix).toContain('GitHub Pages only takes a meta tag');
   });
 });
 

@@ -6,9 +6,22 @@ import { serializeReport } from '../../report/json.js';
 import { captureSubmission } from '../../scout/capture.js';
 import { runScout } from '../../scout/scout.js';
 import { openFile } from '../../util/open-file.js';
+import { askForAddress } from '../ui/address.js';
 import { createProgress } from '../ui/progress.js';
-import { askYesNo } from '../ui/prompts.js';
+import { askLine, askYesNo } from '../ui/prompts.js';
 import { formatSummary } from '../ui/summary.js';
+
+type ScanFlags = Omit<RawScanOptions, 'url'> & { url?: string };
+
+/** Asks for the app's address when --url was left out. Null means no address could be had. */
+async function addressFromUser(): Promise<string | null> {
+  const answer = await askForAddress(askLine, (text) => console.error(text));
+  if (answer.ok) return answer.url;
+
+  console.error(answer.message);
+  process.exitCode = 2;
+  return null;
+}
 
 /** Ctrl+C stops after the step in progress and still writes the report. A second press stops now. */
 async function scanUntilInterrupted(config: ScanConfig, version: string): Promise<ScanOutcome> {
@@ -59,7 +72,10 @@ export function registerScan(program: Command): void {
   program
     .command('scan')
     .description('Send the hooligans into an app running on your own machine.')
-    .requiredOption('--url <url>', 'the app to test, for example http://localhost:3000')
+    .option(
+      '--url <url>',
+      'the app to test, for example http://localhost:3000 (asked for when left out)',
+    )
     .option(
       '--only <hooligans>',
       'run only these hooligans, comma separated (re-check after a fix)',
@@ -79,8 +95,11 @@ export function registerScan(program: Command): void {
       'exit with code 1 when a finding at or above this severity exists',
     )
     .option('--open', 'open the HTML report when the scan finishes')
-    .action(async (options: RawScanOptions, command: Command) => {
-      const parsed = parseScanOptions(options);
+    .action(async (options: ScanFlags, command: Command) => {
+      const url = options.url ?? (await addressFromUser());
+      if (url === null) return;
+
+      const parsed = parseScanOptions({ ...options, url });
       if (!parsed.ok) {
         console.error(parsed.error);
         process.exitCode = 2;

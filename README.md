@@ -24,6 +24,17 @@ When they are done you get a score out of 100, the biggest problems first, and a
 
 Hooligans never tells you an app is safe, because no scan can. It tells you what its checks found, and what they did not look at.
 
+## What it covers, and what it does not
+
+| You want to know | Checked by | Not checked yet |
+| --- | --- | --- |
+| Can a stranger see or take something they should not? | Pickpocket, Loudmouth, Door Rattler, Vandal, Brute | Anything behind a login, which comes in a later version. Apps that are not on your own machine |
+| Does it hold up with many users? | The Mob | Writes under load. Real capacity numbers: the crowd and the app share one machine, so the numbers only show what gives way first |
+| Does odd input break it? | Fat Fingers, Vandal | File uploads |
+| How much data moves? | Only in part: The Mob counts requests, errors and response times | Payload size, bandwidth, uploads and WebSockets |
+
+Hooligans plays the running app. It does not read your source code, and it cannot tell whether your app does what it should, such as a checkout that charges the right amount.
+
 ## Where it is today
 
 Early. A scan already works from start to finish for all seven hooligans of the first version, against an app running on your own machine. Pickpocket and Loudmouth only look. Door Rattler, Fat Fingers and Vandal poke: they type into your forms and read what a stranger could read. Brute tries wrong logins with made-up accounts, at most 30 a minute, and The Mob sends a growing crowd of visitors to see what gives way first. Those five can leave junk data behind or slow your app down, so they ask first. A scan that skips them says so, for example "Nothing serious found so far, 2 of 7 hooligans ran".
@@ -42,18 +53,23 @@ That run only looks. To let the other hooligans in as well, say that the databas
 node dist/cli/index.js scan --url http://localhost:3000 --yes --open
 ```
 
+Leave out `--url` and Hooligans asks which address your app is running on, in plain words.
+
 A full scan takes a few minutes, because Brute is slow on purpose. `--load` sets the most users The Mob sends (25 by default) and `--duration` how long its run takes in seconds (30 by default).
 
 It needs Microsoft Edge or Google Chrome, which it drives but never downloads. `node dist/cli/index.js doctor` checks that everything is ready.
 
 ## Where it is heading
 
-1. **First version:** the seven hooligans above, started with one command against an app on your own machine (planned: `npx hooligans scan --url http://localhost:3000`).
-2. **Next:** log in once by hand so the hooligans can reach everything behind your login, plus three more hooligans:
+1. **First version:** the seven hooligans above, started with one command against an app on your own machine (planned: `npx hooligans scan`, which asks for the address).
+2. **Then a friendlier way in:** a VS Code extension, for VS Code and the editors built on it such as Cursor. It runs a scan from the editor, shows the crowd at work and opens the report in a tab. The command line stays. Before that comes a re-check loop that shows what changed since the last run and whether a fix worked.
+3. **Next:** log in once by hand so the hooligans can reach everything behind your login, plus three more hooligans:
    - **Snooper** checks whether one user can see another user's data.
    - **Double Tapper** fires the same action twice at once, to catch double charges and duplicate rows.
    - **Slowpoke** acts like a user on a slow phone connection.
-3. **Later:** **Wallet Drainer**, which finds open endpoints that could run up a paid-API bill, and easier ways in, such as a browser extension, an editor plugin and a CI check.
+4. **Later:** **Wallet Drainer**, which finds open endpoints that could run up a paid-API bill, an MCP server so an AI coding tool can run the re-check itself, and a CI check.
+
+The plan, and the reasons for it, are in the [decision records](docs/decisions/).
 
 ## Built with
 
@@ -61,4 +77,4 @@ TypeScript on Node.js, with Playwright driving a headless browser.
 
 ## Responsible use
 
-Only point Hooligans at apps you own or have permission to test. Start with your own machine.
+Only point Hooligans at apps you own or have permission to test. This version only runs against an app on your own machine. [docs/safety.md](docs/safety.md) says what it does, what it never does and where it stops, [docs/roster.md](docs/roster.md) says what each hooligan looks at and leaves alone, and [docs/architecture.md](docs/architecture.md) shows how the code fits together.

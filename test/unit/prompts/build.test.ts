@@ -66,6 +66,11 @@ describe('describeStack', () => {
     );
   });
 
+  it('names Angular, and says an before a name that starts with a vowel', () => {
+    expect(describeStack({ framework: 'angular', backends: [] })).toBe('This is an Angular app.');
+    expect(describeStack({ framework: 'express', backends: [] })).toBe('This is an Express app.');
+  });
+
   it('says so when it cannot tell', () => {
     expect(describeStack({ backends: [] })).toContain('could not tell');
   });

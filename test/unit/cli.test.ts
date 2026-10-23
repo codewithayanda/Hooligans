@@ -15,9 +15,11 @@ describe('the command line program', () => {
     ]);
   });
 
-  it('requires a url to scan', () => {
+  it('takes a url, and asks for one when it is left out', () => {
     const url = scan?.options.find((option) => option.long === '--url');
-    expect(url?.mandatory).toBe(true);
+
+    expect(url?.mandatory).toBe(false);
+    expect(url?.required).toBe(true);
   });
 
   it('offers the flags from the design', () => {
