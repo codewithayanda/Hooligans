@@ -23,17 +23,18 @@ export type ConsentResult = {
 const SKIPPED = 'You did not confirm that the database behind the app is a dev or test copy.';
 
 function databaseQuestion(hostedBackends: readonly string[]): string {
-  const lead = 'Stages 2 to 4 write junk data through your app and fire login attempts.';
+  const lead =
+    'Hooligans can look at your app without changing anything. To go further it will type made-up data into your forms, try a few wrong logins and send a crowd of visitors, and that can leave junk behind.';
   const hosted =
     hostedBackends.length > 0
-      ? ` Your app talks to ${hostedBackends.join(', ')}, and Hooligans cannot tell whether that is production.`
+      ? ` Your app talks to ${hostedBackends.join(', ')}, and Hooligans cannot tell whether that is your live production data. If it might be, answer no.`
       : '';
 
-  return `${lead}${hosted} Is the database behind this app a dev or test copy?`;
+  return `${lead}${hosted} Is the database behind this app a test copy, one you would not mind filling with junk?`;
 }
 
 function hostQuestion(host: string): string {
-  return `Door Rattler wants to read ${host} with your app's public key. Is that your project?`;
+  return `Door Rattler wants to read ${host} the way any visitor could, using the public key your app already ships. Is that your project?`;
 }
 
 /** The user's say-so for the risky parts. Stage 1 never needs it, and the default answer is no. */

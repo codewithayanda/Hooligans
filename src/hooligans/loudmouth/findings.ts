@@ -4,6 +4,7 @@ import { cleanText } from '../../util/text.js';
 import { examples, finish, joinWords, safeToken } from '../_shared/finding.js';
 
 const HOOLIGAN = 'loudmouth';
+const CSP = 'Content-Security-Policy';
 
 export type CorsAnswer = { path: string; credentials: boolean };
 
@@ -15,10 +16,47 @@ function howToSet(map: AppMap, header: string): string {
     case 'express':
       return `Set the ${header} header on every response, for example with the helmet middleware or with res.setHeader before your routes.`;
     case 'vite':
-      return `Vite only builds your files, so set the ${header} header where the built site is served, such as your hosting settings or your server config.`;
+      return `Vite only builds your files, so set the ${header} header where the built site is served.`;
+    case 'angular':
+      return `Angular only builds your files, so set the ${header} header where the built site is served.`;
     default:
       return `Set the ${header} header on every response, in your server or hosting settings.`;
   }
+}
+
+/** What to do with the file that Netlify and Cloudflare Pages read, in the build of each tool. */
+function copyTip(framework: string | undefined): string {
+  switch (framework) {
+    case 'vite':
+      return ' With Vite, put that file in the public folder so it is copied to the top of the build.';
+    case 'angular':
+      return ' With Angular, add that file to the assets list in angular.json so it is copied to the top of the build.';
+    default:
+      return '';
+  }
+}
+
+/** Where the header goes on the common hosts. A scan only sees localhost, so it cannot know which. */
+function onHosts(map: AppMap, header: string): string {
+  const { framework } = map.stack;
+  if (framework === 'nextjs' || framework === 'express') return '';
+
+  const github =
+    header === CSP
+      ? 'GitHub Pages cannot set headers, but a meta tag with http-equiv="Content-Security-Policy" in index.html can carry the policy, without frame-ancestors.'
+      : 'GitHub Pages cannot set this header at all, so a site hosted there needs another host, or a service in front of it such as Cloudflare.';
+
+  return ` Where that is depends on the host. On Netlify or Cloudflare Pages, add a file named _headers to the folder that gets published, with the line /* and then the header on an indented line below it.${copyTip(framework)} On Vercel, add the header to the headers list in vercel.json. With your own server, such as nginx or Apache, add it to the server config. ${github}`;
+}
+
+/** The same advice in one line for the report, for apps with no server of their own. */
+function hostsNote(map: AppMap, header: string): string {
+  const { framework } = map.stack;
+  if (framework === 'nextjs' || framework === 'express') return '';
+
+  const github =
+    header === CSP ? 'GitHub Pages only takes a meta tag' : 'GitHub Pages cannot set it at all';
+  return ` Where you set it depends on your host: Netlify and Cloudflare Pages read a _headers file, Vercel reads vercel.json, and ${github}.`;
 }
 
 function lacks(count: number, what: string): string {
@@ -46,9 +84,9 @@ export function missingCsp(map: AppMap, paths: string[]): Finding {
       rootCause: 'loudmouth:header:content-security-policy',
       affected: paths,
       evidence: lacks(paths.length, 'a Content-Security-Policy header'),
-      fix: 'Add a Content-Security-Policy header that only allows scripts from your own site. It limits the damage if someone manages to get a script onto one of your pages.',
+      fix: `Add a Content-Security-Policy header that only allows scripts from your own site. It limits the damage if someone manages to get a script onto one of your pages.${hostsNote(map, CSP)}`,
       problem: `The app does not send a Content-Security-Policy header on its pages${examples(paths)}.`,
-      change: `${howToSet(map, 'Content-Security-Policy')} Start with a policy that only allows scripts and styles from your own site, and loosen it only where something breaks.`,
+      change: `${howToSet(map, CSP)} Start with a policy that only allows scripts and styles from your own site, and loosen it only where something breaks.${onHosts(map, CSP)}`,
       keep: 'Every page must still load its own scripts, styles and images.',
     },
     map,
@@ -67,9 +105,9 @@ export function missingFrameProtection(map: AppMap, paths: string[]): Finding {
       rootCause: 'loudmouth:header:frame-protection',
       affected: paths,
       evidence: lacks(paths.length, 'an X-Frame-Options header or a frame-ancestors rule'),
-      fix: "Send X-Frame-Options: DENY, or a Content-Security-Policy with frame-ancestors 'none', so other sites cannot put your pages in a frame and trick visitors into clicking.",
+      fix: `Send X-Frame-Options: DENY, or a Content-Security-Policy with frame-ancestors 'none', so other sites cannot put your pages in a frame and trick visitors into clicking.${hostsNote(map, 'X-Frame-Options')}`,
       problem: `The app can be shown inside a frame on any other site, because it sends no X-Frame-Options header and no frame-ancestors rule${examples(paths)}.`,
-      change: `${howToSet(map, 'X-Frame-Options')} Use DENY, or SAMEORIGIN if your own pages frame each other.`,
+      change: `${howToSet(map, 'X-Frame-Options')} Use DENY, or SAMEORIGIN if your own pages frame each other.${onHosts(map, 'X-Frame-Options')}`,
       keep: 'If a page is meant to be embedded on another site, allow only that site with frame-ancestors.',
     },
     map,
@@ -88,9 +126,9 @@ export function missingNosniff(map: AppMap, paths: string[]): Finding {
       rootCause: 'loudmouth:header:x-content-type-options',
       affected: paths,
       evidence: lacks(paths.length, 'an X-Content-Type-Options header'),
-      fix: 'Send X-Content-Type-Options: nosniff so browsers trust the file type you declare instead of guessing it.',
+      fix: `Send X-Content-Type-Options: nosniff so browsers trust the file type you declare instead of guessing it.${hostsNote(map, 'X-Content-Type-Options')}`,
       problem: `The app does not send an X-Content-Type-Options header${examples(paths)}.`,
-      change: `${howToSet(map, 'X-Content-Type-Options')} Use the value nosniff.`,
+      change: `${howToSet(map, 'X-Content-Type-Options')} Use the value nosniff.${onHosts(map, 'X-Content-Type-Options')}`,
       keep: 'Pages, scripts and styles must still load.',
     },
     map,

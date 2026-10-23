@@ -2,6 +2,7 @@ import type { AppMap } from '../core/app-map.js';
 
 const FRAMEWORKS: Readonly<Record<string, string>> = {
   nextjs: 'Next.js',
+  angular: 'Angular',
   vite: 'Vite',
   express: 'Express',
 };
@@ -10,6 +11,11 @@ const BACKENDS: Readonly<Record<string, string>> = {
   supabase: 'Supabase',
   firebase: 'Firebase',
 };
+
+/** "an Angular", "an Express" and "a Vite". */
+function withArticle(name: string): string {
+  return /^[aeiou]/i.test(name) ? `an ${name}` : `a ${name}`;
+}
 
 function joinNames(names: readonly string[]): string {
   const last = names[names.length - 1] ?? '';
@@ -28,6 +34,6 @@ export function describeStack(stack: AppMap['stack']): string {
     return 'I could not tell which framework this app uses, so look at how it is set up before you change anything.';
   }
 
-  const app = framework ? `This is a ${framework} app` : 'This is a web app';
+  const app = framework ? `This is ${withArticle(framework)} app` : 'This is a web app';
   return backends.length > 0 ? `${app} that uses ${joinNames(backends)}.` : `${app}.`;
 }

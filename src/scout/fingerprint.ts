@@ -31,10 +31,21 @@ const DEV_PATHS: readonly RegExp[] = [
 
 const VITE_ASSET = /^\/assets\/[\w.-]+-[A-Za-z0-9_-]{8}\.(?:js|css)$/;
 
+/** Angular's newer build names a bundle main- and eight capitals or digits. */
+const ANGULAR_MAIN = /(?:^|\/)main-[A-Z0-9]{8}\.js$/;
+/** Its older build hashes runtime, polyfills and main with sixteen hex characters. */
+const ANGULAR_WEBPACK = /(?:^|\/)(runtime|polyfills|main)\.[0-9a-f]{16}\.js$/;
+/** A classic ng serve sends these three bundles without a hash. */
+const ANGULAR_DEV_BUNDLES: readonly string[] = ['/main.js', '/polyfills.js', '/runtime.js'];
+/** Left in a script by Angular's own code, in a dev build and in a production build. */
+const ANGULAR_TEXT: readonly string[] = ['@angular/core', '@angular_core', 'ng-version'];
+
 const PROD_PATHS: readonly RegExp[] = [
   /^\/_next\/static\/chunks\//,
   VITE_ASSET,
   /^\/static\/js\/main\.[0-9a-f]{8}\.js$/,
+  ANGULAR_MAIN,
+  ANGULAR_WEBPACK,
 ];
 
 const SUPABASE_HOST = /(?:^|\.)supabase\.(?:co|in)$/;
@@ -92,11 +103,33 @@ export function isBackendHost(host: string): boolean {
   return SUPABASE_HOST.test(name) || FIREBASE_HOST.test(name);
 }
 
+/** A classic ng serve, which has no client script of its own to give it away. */
+function angularDevServer(paths: readonly string[]): boolean {
+  return ANGULAR_DEV_BUNDLES.every((bundle) => paths.includes(bundle));
+}
+
+/** Looks at file names first and only then at the text of the scripts, which is the slow part. */
+function isAngular(paths: readonly string[], scripts: readonly string[]): boolean {
+  if (paths.some((path) => ANGULAR_MAIN.test(path))) return true;
+
+  const hashed = new Set(
+    paths.flatMap((path) => {
+      const name = ANGULAR_WEBPACK.exec(path)?.[1];
+      return name ? [name] : [];
+    }),
+  );
+  if (hashed.size >= 2 || angularDevServer(paths)) return true;
+
+  return scripts.some((script) => ANGULAR_TEXT.some((marker) => script.includes(marker)));
+}
+
 function frameworkOf(
   paths: readonly string[],
   headers: readonly Record<string, string>[],
+  scripts: readonly string[],
 ): string | undefined {
   if (paths.some((path) => path.startsWith('/_next/'))) return 'nextjs';
+  if (isAngular(paths, scripts)) return 'angular';
   if (paths.some((path) => path.startsWith('/@vite/') || VITE_ASSET.test(path))) return 'vite';
 
   const powered = headers
@@ -111,7 +144,9 @@ export function fingerprint(input: FingerprintInput): Fingerprint {
   const urls = input.urls.map(parse).filter((url): url is URL => url !== null);
   const paths = urls.map((url) => url.pathname);
 
-  const dev = paths.some((path) => DEV_PATHS.some((pattern) => pattern.test(path)));
+  const dev =
+    paths.some((path) => DEV_PATHS.some((pattern) => pattern.test(path))) ||
+    angularDevServer(paths);
   const prod = paths.some((path) => PROD_PATHS.some((pattern) => pattern.test(path)));
 
   const hosts = new Set<string>();
@@ -132,7 +167,7 @@ export function fingerprint(input: FingerprintInput): Fingerprint {
   }
   if (paths.some((path) => SUPABASE_PATH.test(path))) backends.add('supabase');
 
-  const framework = frameworkOf(paths, input.headers);
+  const framework = frameworkOf(paths, input.headers, input.scripts);
 
   return {
     ...(framework ? { framework } : {}),

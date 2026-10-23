@@ -57,6 +57,16 @@ describe('gatherConsent', () => {
     expect(result.stagesToRun).toEqual([1, 2]);
   });
 
+  it('asks about the database in everyday words', async () => {
+    const { asked, ask } = asker(false);
+    await gatherConsent({ ...base, stages: [1, 2], yes: false, ask });
+
+    expect(asked[0]).toContain('made-up data');
+    expect(asked[0]).toContain('test copy');
+    expect(asked[0]).toContain('junk');
+    expect(asked[0]).not.toContain('Stages 2 to 4');
+  });
+
   it('names the hosted backend and says it could be production', async () => {
     const { asked, ask } = asker(false);
     await gatherConsent({
