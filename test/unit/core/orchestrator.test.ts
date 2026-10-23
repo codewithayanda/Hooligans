@@ -4,10 +4,12 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { silentProgress } from '../../../src/cli/ui/progress.js';
 import { parseScanOptions, type ScanConfig } from '../../../src/core/config.js';
-import type { HooliganContext } from '../../../src/core/context.js';
+import type { HooliganContext, Submission } from '../../../src/core/context.js';
 import type { Hooligan, HooliganResult } from '../../../src/core/hooligan.js';
 import { runScan, type ScanDeps, type ScanOutcome } from '../../../src/core/orchestrator.js';
+import type { LoadSummary } from '../../../src/core/report.js';
 import { identity } from '../../../src/hooligans/_shared/identity.js';
+import type { CaptureOptions } from '../../../src/scout/capture.js';
 import { AppNotReachable } from '../../../src/scout/reach.js';
 import { makeFinding } from '../../helpers/findings.js';
 import { makeMap } from '../../helpers/maps.js';
@@ -314,5 +316,82 @@ describe('runScan: Ctrl+C', () => {
       id: 'pickpocket',
       reason: 'Stopped with Ctrl+C.',
     });
+  });
+});
+
+describe('runScan: what the later stages are given', () => {
+  const load: LoadSummary = {
+    peakUsers: 5,
+    levels: [
+      { users: 1, requests: 8, errors: 0, timeouts: 0, pushedBack: 0, p50Ms: 20, p95Ms: 30 },
+      { users: 5, requests: 40, errors: 0, timeouts: 0, pushedBack: 0, p50Ms: 25, p95Ms: 60 },
+    ],
+    stoppedBy: 'finished',
+    breakAt: null,
+    weakSpot: null,
+    recovered: null,
+    routes: ['GET /'],
+  };
+
+  it('tells each hooligan how long the load run is to take', async () => {
+    let seconds: number | undefined;
+    const spy = fake('pickpocket', async (context) => {
+      seconds = context.caps.loadSeconds;
+      return { findings: [] };
+    });
+
+    await runScan(configFor({ seconds: 12 }), depsFor([spy]).deps);
+
+    expect(seconds).toBe(12);
+  });
+
+  it('keeps what The Mob saw, for the chart in the report', async () => {
+    const registry = [fake('the-mob', async () => ({ findings: [], load }))];
+    const { report } = finished(await runScan(configFor({ yes: true }), depsFor(registry).deps));
+
+    expect(report.load).toEqual(load);
+  });
+
+  it('has no load section when The Mob did not run', async () => {
+    const { report } = finished(await runScan(configFor(), depsFor([fake('pickpocket')]).deps));
+
+    expect('load' in report).toBe(false);
+  });
+
+  it('hands a hooligan a way to submit a login in a browser, when the scan has one', async () => {
+    const asked: { page: string; identifier: string; guarded: boolean }[] = [];
+    const capture = async (options: CaptureOptions): Promise<Submission | null> => {
+      asked.push({
+        page: options.page,
+        identifier: options.values.identifier,
+        guarded: typeof options.guard.decide === 'function',
+      });
+      return null;
+    };
+    const spy = fake('brute', async (context) => {
+      await context.capture?.('http://localhost:3000/login', {
+        identifier: 'a@b.invalid',
+        password: 'x',
+      });
+      return { findings: [] };
+    });
+
+    await runScan(configFor({ yes: true }), depsFor([spy], { capture }).deps);
+
+    expect(asked).toEqual([
+      { page: 'http://localhost:3000/login', identifier: 'a@b.invalid', guarded: true },
+    ]);
+  });
+
+  it('gives no browser to a hooligan when the scan has none', async () => {
+    let offered: boolean | undefined;
+    const spy = fake('brute', async (context) => {
+      offered = context.capture !== undefined;
+      return { findings: [] };
+    });
+
+    await runScan(configFor({ yes: true }), depsFor([spy]).deps);
+
+    expect(offered).toBe(false);
   });
 });

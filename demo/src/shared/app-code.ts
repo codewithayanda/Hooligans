@@ -20,6 +20,8 @@ fetch('/rest/v1/orders?select=*&limit=1', {
 }).catch(function () {});
 
 fetch('/api/users').catch(function () {});
+fetch('/api/stats').catch(function () {});
+fetch('/api/activity').catch(function () {});
 
 fetch('/api/products')
   .then(function (response) { return response.json(); })

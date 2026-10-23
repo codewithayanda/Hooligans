@@ -101,7 +101,9 @@ export async function checkSupabase(
 
   for (const api of apis) {
     if (api.base !== appOrigin && !context.confirmedHosts.includes(api.host.toLowerCase())) {
-      notes.push(`Door Rattler did not read ${api.host}, because you did not confirm it is your project.`);
+      notes.push(
+        `Door Rattler did not read ${api.host}, because you did not confirm it is your project.`,
+      );
       continue;
     }
 
@@ -120,7 +122,13 @@ export async function checkSupabase(
         if (read && read.rows > 0) {
           const sensitive = isSensitiveTable(table, read.columns);
           findings.push(
-            openTable(context.map, { base: api.base, table, columns: read.columns, key, sensitive }),
+            openTable(context.map, {
+              base: api.base,
+              table,
+              columns: read.columns,
+              key,
+              sensitive,
+            }),
           );
         } else if (read) {
           silent = true;

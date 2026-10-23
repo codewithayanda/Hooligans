@@ -14,6 +14,7 @@ describe('defaultCaps', () => {
       maxRequestsPerSecond: 2,
       maxUsers: 25,
       maxAttemptsPerMinute: 30,
+      loadSeconds: 30,
     });
   });
 });

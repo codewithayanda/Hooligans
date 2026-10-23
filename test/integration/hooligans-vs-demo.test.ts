@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -7,6 +7,7 @@ import { parseScanOptions } from '../../src/core/config.js';
 import { runScan } from '../../src/core/orchestrator.js';
 import type { Report } from '../../src/core/report.js';
 import { HOOLIGANS } from '../../src/hooligans/registry.js';
+import { captureSubmission } from '../../src/scout/capture.js';
 import { runScout } from '../../src/scout/scout.js';
 import { shouldSkipBrowserTests } from '../helpers/browser.js';
 import { startDemo, type DemoOptions } from '../helpers/demo.js';
@@ -15,28 +16,35 @@ import { expectWellFormed } from '../helpers/findings.js';
 const skip = await shouldSkipBrowserTests('The hooligan tests');
 const describeWithBrowser = describe.skipIf(skip);
 
-/** Paths a careful scan must never touch: a login, a logout, a delete and pages nobody linked. */
-const OFF_LIMITS = [
-  '/api/login',
-  '/logout',
-  '/delete',
-  '/admin/secret-page',
-  '/hidden-in-sitemap.html',
-];
+/** Paths a careful scan must never touch: a logout, a delete and pages nobody linked. */
+const OFF_LIMITS = ['/logout', '/delete', '/admin/secret-page', '/hidden-in-sitemap.html'];
 
-type Scanned = { report: Report; offLimitsHits: number };
+type Scanned = {
+  report: Report;
+  offLimitsHits: number;
+  /** The lines the crowd left in the request log, and the requests those lines stand for. */
+  crowd: { lines: number; requests: number };
+};
 
+type LogLine = { hooligan: string; count?: number };
+
+/** A full scan asks for ten users over twelve seconds, so the crowd run stays short. */
 async function scanDemo(options: DemoOptions, yes: boolean): Promise<Scanned> {
   const demo = await startDemo(options);
   const cwd = mkdtempSync(join(tmpdir(), 'hooligans-demo-'));
 
   try {
-    const parsed = parseScanOptions({ url: demo.origin, yes });
+    const parsed = parseScanOptions({
+      url: demo.origin,
+      yes,
+      ...(yes ? { load: '10', duration: '12' } : {}),
+    });
     if (!parsed.ok) throw new Error(parsed.error);
 
     const outcome = await runScan(parsed.config, {
       registry: HOOLIGANS,
       scout: runScout,
+      capture: captureSubmission,
       ask: async () => false,
       progress: silentProgress,
       cwd,
@@ -45,8 +53,20 @@ async function scanDemo(options: DemoOptions, yes: boolean): Promise<Scanned> {
     });
     if (outcome.kind !== 'done') throw new Error(outcome.message);
 
-    const offLimitsHits = OFF_LIMITS.reduce((total, path) => total + demo.hits(path), 0);
-    return { report: outcome.report, offLimitsHits };
+    const lines = readFileSync(join(outcome.directory, 'requests.jsonl'), 'utf8')
+      .split('\n')
+      .filter((line) => line !== '')
+      .map((line) => JSON.parse(line) as LogLine)
+      .filter((line) => line.hooligan === 'the-mob');
+
+    return {
+      report: outcome.report,
+      offLimitsHits: OFF_LIMITS.reduce((total, path) => total + demo.hits(path), 0),
+      crowd: {
+        lines: lines.length,
+        requests: lines.reduce((total, line) => total + (line.count ?? 1), 0),
+      },
+    };
   } finally {
     rmSync(cwd, { recursive: true, force: true });
     await demo.close();
@@ -106,14 +126,15 @@ describeWithBrowser('Pickpocket and Loudmouth against the demo', () => {
     expect(fixed.skipped.map((item) => item.id)).toContain('door-rattler');
   });
 
-  it('leaves stage 2 alone until the database is confirmed', () => {
+  it('leaves stages 2 to 4 alone until the database is confirmed', () => {
     const left = vulnerable.skipped
       .filter((item) => item.reason.includes('dev or test copy'))
       .map((item) => item.id)
       .sort();
 
-    expect(left).toEqual(['door-rattler', 'fat-fingers', 'vandal']);
+    expect(left).toEqual(['brute', 'door-rattler', 'fat-fingers', 'the-mob', 'vandal']);
     expect(vulnerable.run.stagesRun).toEqual([1]);
+    expect(vulnerable.load).toBeUndefined();
   });
 
   it('gives every finding a plain explanation and a five part prompt', () => {
@@ -133,14 +154,14 @@ describeWithBrowser('Pickpocket and Loudmouth against the demo', () => {
   });
 });
 
-describeWithBrowser('Door Rattler, Fat Fingers and Vandal against the demo', () => {
+describeWithBrowser('Every hooligan against the demo', () => {
   let vulnerable!: Scanned;
   let fixed!: Scanned;
 
   beforeAll(async () => {
     vulnerable = await scanDemo({ mode: 'vuln' }, true);
     fixed = await scanDemo({ mode: 'fixed' }, true);
-  }, 180_000);
+  }, 240_000);
 
   const idsOf = (report: Report, hooligan: string) =>
     report.findings
@@ -158,24 +179,61 @@ describeWithBrowser('Door Rattler, Fat Fingers and Vandal against the demo', () 
     ]);
     expect(idsOf(report, 'fat-fingers')).toEqual(['fat-fingers.stack-trace']);
     expect(idsOf(report, 'vandal')).toEqual(['vandal.reflected-input', 'vandal.sql-error']);
+    expect(idsOf(report, 'the-mob')).toEqual(['the-mob.errors-under-load']);
   });
 
-  it('stays quiet about the fixed twin', () => {
+  it('finds the login with no limit, both as a form and as a single page login', () => {
+    const { report } = vulnerable;
+    const logins = report.findings.filter((finding) => finding.hooligan === 'brute');
+
+    expect(logins.map((finding) => finding.id)).toEqual([
+      'brute.no-rate-limit',
+      'brute.no-rate-limit',
+    ]);
+    expect(logins.flatMap((finding) => finding.affected).sort()).toEqual([
+      'POST /api/login',
+      'POST /api/session',
+    ]);
+  });
+
+  it('lists the signup and the reset as worth a look, because that is all it can say', () => {
+    const ids = vulnerable.report.worthALook
+      .filter((finding) => finding.hooligan === 'brute')
+      .map((finding) => finding.id)
+      .sort();
+
+    expect(ids).toEqual(['brute.reset-no-limit', 'brute.signup-no-limit']);
+  });
+
+  it('stays quiet about the fixed twin, where a limit answers 429 and the crowd is served', () => {
     expect(fixed.report.findings).toEqual([]);
     expect(fixed.report.worthALook).toEqual([]);
   });
 
-  it('runs five of the seven hooligans, and still does not call the fixed twin safe', () => {
-    expect(vulnerable.report.score.ran).toBe(5);
-    expect(vulnerable.report.score.verdict).toBe('not-ready');
-    expect(vulnerable.report.run.stagesRun).toEqual([1, 2]);
+  it('shows how the crowd got on, and where it gave way', () => {
+    const load = vulnerable.report.load;
 
-    expect(fixed.report.score.label).toBe('Nothing serious found so far, 5 of 7 hooligans ran');
-    expect(fixed.report.run.status).toBe('partial');
+    expect(load?.stoppedBy).toBe('errors');
+    expect(load?.breakAt).toBeLessThanOrEqual(10);
+    expect(load?.weakSpot).toMatch(/^GET \/api\/(?:products|stats|activity)$/);
+
+    expect(fixed.report.load?.stoppedBy).toBe('finished');
+    expect(fixed.report.load?.peakUsers).toBe(10);
+  });
+
+  it('runs all seven hooligans, and still does not call the fixed twin safe', () => {
+    expect(vulnerable.report.score.ran).toBe(7);
+    expect(vulnerable.report.score.verdict).toBe('not-ready');
+    expect(vulnerable.report.run.stagesRun).toEqual([1, 2, 3, 4]);
+    expect(vulnerable.report.run.status).toBe('complete');
+
+    expect(fixed.report.score.label).toBe('Nothing serious found');
+    expect(fixed.report.score.value).toBe(100);
   });
 
   it('gives every finding a plain explanation and a five part prompt', () => {
     for (const finding of vulnerable.report.findings) expectWellFormed(finding);
+    for (const finding of vulnerable.report.worthALook) expectWellFormed(finding);
   });
 
   it('leaves junk data it can find again, and says how', () => {
@@ -183,7 +241,12 @@ describeWithBrowser('Door Rattler, Fat Fingers and Vandal against the demo', () 
     expect(vulnerable.report.activity.cleanupMarker).toMatch(/^hooligans-/);
   });
 
-  it('never goes near a login, a logout, a delete or a page nobody linked', () => {
+  it('writes the crowd to the request log as counts for each second, not a line for each request', () => {
+    expect(fixed.crowd.lines).toBeGreaterThan(0);
+    expect(fixed.crowd.requests).toBeGreaterThan(fixed.crowd.lines);
+  });
+
+  it('never goes near a logout, a delete or a page nobody linked', () => {
     expect(vulnerable.offLimitsHits).toBe(0);
     expect(fixed.offLimitsHits).toBe(0);
   });

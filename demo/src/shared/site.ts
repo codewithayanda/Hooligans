@@ -11,6 +11,9 @@ const PAGES: Readonly<Record<string, string>> = {
   '/pricing.html': 'pricing.html',
   '/login.html': 'login.html',
   '/contact.html': 'contact.html',
+  '/signup.html': 'signup.html',
+  '/forgot.html': 'forgot.html',
+  '/app-login.html': 'app-login.html',
   '/hidden-in-sitemap.html': 'hidden-in-sitemap.html',
 };
 

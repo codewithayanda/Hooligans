@@ -357,6 +357,47 @@ summary {
   font-weight: 700;
 }
 
+.chart {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  margin: 8px 0 16px;
+}
+
+.chart-label,
+.chart-value {
+  fill: var(--text);
+  font-size: 13px;
+}
+
+.bar-ok {
+  fill: var(--tone-nothing-serious);
+}
+
+.bar-slow {
+  fill: var(--tone-almost-there);
+}
+
+.bar-errors {
+  fill: var(--tone-not-ready);
+}
+
+.load-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.load-table th,
+.load-table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
 .page-footer {
   color: var(--muted);
   font-size: 0.875rem;

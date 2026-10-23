@@ -31,7 +31,7 @@ After a build, `node dist/cli/index.js --help` lists the commands, and `node dis
 
 With the demo running, `node dist/cli/index.js scan --url http://127.0.0.1:4001` scans the vulnerable twin and port 4002 scans the fixed one. Each scan writes a folder in `.hooligans/runs` with the report, the app map and the request log.
 
-Add `--yes` to run stage 2 as well (Door Rattler, Fat Fingers and Vandal). The demo has no database, so that is safe here: the only junk is a few form posts marked with hooligans-runId. Stage 2 takes a minute or so, because Fat Fingers and Vandal send two requests a second on purpose.
+Add `--yes` to run stages 2 to 4 as well (Door Rattler, Fat Fingers, Vandal, Brute and The Mob). The demo has no database, so that is safe here: the only junk is a few form posts marked with hooligans-runId. A full scan takes a few minutes, because Brute sends 30 attempts a minute on purpose and The Mob runs for `--duration` seconds. For a short run, use `--stages 1,2`, or `--only the-mob --load 10 --duration 12`.
 
 ## Conventions
 

@@ -52,7 +52,10 @@ describe('findTrace', () => {
     ['Java', JAVA],
     ['Java thread', 'Exception in thread "main" java.lang.IllegalStateException: boom'],
     ['PHP', 'Fatal error: Uncaught TypeError: Bad operand types in /var/www/html/contact.php:12'],
-    ['PHP page', '<b>Warning</b>:  Division by zero in <b>/var/www/html/a.php</b> on line <b>9</b>'],
+    [
+      'PHP page',
+      '<b>Warning</b>:  Division by zero in <b>/var/www/html/a.php</b> on line <b>9</b>',
+    ],
     ['Ruby', "/app/controllers/contact_controller.rb:12:in `create'"],
     ['Express error page', EXPRESS_PAGE],
   ])('recognises a %s stack trace', (_language, body) => {

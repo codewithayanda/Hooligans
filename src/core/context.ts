@@ -35,7 +35,25 @@ export type Caps = {
   maxRequestsPerSecond: number;
   maxUsers: number;
   maxAttemptsPerMinute: number;
+  /** How long The Mob takes to ramp up, in seconds. */
+  loadSeconds: number;
 };
+
+/** The request a page sent when a made-up login was typed into its form and submitted. */
+export type Submission = {
+  method: string;
+  url: string;
+  contentType: string;
+  /** What was sent. It holds only the made-up values that were typed. */
+  body: string;
+  /** What the app answered, or null when no answer was seen. */
+  status: number | null;
+};
+
+export type CaptureValues = { identifier: string; password: string };
+
+/** Types made-up values into the login form of a page, submits it once and reports what was sent. */
+export type SubmitCapture = (page: string, values: CaptureValues) => Promise<Submission | null>;
 
 /** Everything a hooligan is given. A first draft, refined as the hooligans arrive. */
 export type HooliganContext = {
@@ -47,4 +65,6 @@ export type HooliganContext = {
   confirmedHosts: readonly string[];
   /** The user asked for routes that look like they have side effects to be included. */
   includeRisky: boolean;
+  /** A browser that can submit a login form once. Only there when the scan has a browser. */
+  capture?: SubmitCapture;
 };

@@ -24,6 +24,7 @@ import {
   type RawPage,
 } from './extract.js';
 import { fingerprint } from './fingerprint.js';
+import { guardContext } from './guarded.js';
 import { gatherLeads } from './leads.js';
 import { assertReachable } from './reach.js';
 
@@ -242,23 +243,7 @@ export async function runScout(options: ScoutOptions): Promise<AppMap> {
     };
     const context = await browser.newContext(contextOptions);
 
-    await context.route('**/*', async (route) => {
-      const request = route.request();
-
-      try {
-        const decision = await guard.decide(new URL(request.url()));
-
-        if (!decision.allowed) {
-          guard.noteBlocked(request.method(), request.url(), decision.reason);
-          await route.abort('blockedbyclient');
-          return;
-        }
-
-        await route.continue();
-      } catch {
-        await route.abort('failed').catch(() => undefined);
-      }
-    });
+    await guardContext(context, guard);
 
     context.on('response', (response) => {
       const work = collect(response, collected, scope, guard);

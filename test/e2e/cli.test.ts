@@ -108,12 +108,19 @@ describe.skipIf(skipScans)('hooligans scan against the demo', () => {
     expect(report.findings.length).toBeGreaterThan(0);
     expect(report.score.value).toBeLessThan(40);
     expect(run.stderr).toContain('Report:');
-    expect(left.map((item) => item.id).sort()).toEqual(['door-rattler', 'fat-fingers', 'vandal']);
+    expect(left.map((item) => item.id).sort()).toEqual([
+      'brute',
+      'door-rattler',
+      'fat-fingers',
+      'the-mob',
+      'vandal',
+    ]);
     expect(report.activity.writes).toBe(0);
   });
 
   it('runs stage 2 with --yes, and finds what each of its hooligans is for', async () => {
-    const run = await runCli(['scan', '--url', vulnerable.origin, '--yes', '--json']);
+    const args = ['scan', '--url', vulnerable.origin, '--yes', '--stages', '1,2', '--json'];
+    const run = await runCli(args);
     const report = parseReport(run.stdout);
     const ids = report.findings.map((finding) => finding.id);
 
@@ -127,6 +134,17 @@ describe.skipIf(skipScans)('hooligans scan against the demo', () => {
     );
     expect(report.score.ran).toBe(5);
     expect(report.activity.cleanupMarker).toMatch(/^hooligans-/);
+  });
+
+  it('runs The Mob with --yes, --load and --duration, and finds where the app gives way', async () => {
+    const args = ['scan', '--url', vulnerable.origin, '--yes', '--only', 'the-mob'];
+    const run = await runCli([...args, '--load', '10', '--duration', '12', '--json']);
+    const report = parseReport(run.stdout);
+
+    expect(report.findings.map((finding) => finding.id)).toEqual(['the-mob.errors-under-load']);
+    expect(report.load?.stoppedBy).toBe('errors');
+    expect(report.load?.breakAt).toBeLessThanOrEqual(10);
+    expect(report.score.ran).toBe(1);
   });
 
   it('exits 0 and prints the summary for the fixed twin, without calling it safe', async () => {

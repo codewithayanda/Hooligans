@@ -89,7 +89,9 @@ describe('Vandal on the vulnerable site', () => {
     expect(posts.length).toBeGreaterThan(5);
     expect(posts.every((request) => request.body?.includes(MARKER))).toBe(true);
     expect(notLookedAt?.[0]).toContain(`leaves junk data marked with ${MARKER}`);
-    expect(notLookedAt?.[0]).toContain('does not check input that is stored and shown on a later page');
+    expect(notLookedAt?.[0]).toContain(
+      'does not check input that is stored and shown on a later page',
+    );
   });
 
   it('never follows a redirect, and leaves the login form alone', async () => {

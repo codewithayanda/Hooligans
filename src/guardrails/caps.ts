@@ -17,6 +17,7 @@ export function defaultCaps(): Caps {
     maxRequestsPerSecond: LIMITS.fuzz.requestsPerSecond,
     maxUsers: LIMITS.mob.users,
     maxAttemptsPerMinute: LIMITS.brute.attemptsPerMinute,
+    loadSeconds: LIMITS.mob.seconds,
   };
 }
 

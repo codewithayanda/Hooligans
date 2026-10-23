@@ -15,6 +15,8 @@ export type BuildReportInput = {
   total?: number;
   skipped: Report['skipped'];
   notLookedAt: Report['notLookedAt'];
+  /** What The Mob saw, when it ran. */
+  load?: Report['load'];
   activity: Report['activity'];
 };
 
@@ -39,6 +41,7 @@ export function buildReport(input: BuildReportInput): Report {
     worthALook,
     skipped: input.skipped,
     notLookedAt: input.notLookedAt,
+    ...(input.load ? { load: input.load } : {}),
     activity: input.activity,
   };
 }

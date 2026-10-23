@@ -20,6 +20,9 @@ All notable changes to Hooligans are listed here. The format follows Keep a Chan
 - Vandal types a harmless marker and a stray quote into the same fields, and reports input that comes back as raw markup and database errors that leak.
 - The demo has a fake Supabase style table, a private route, a debug page, a crashing contact form and a search page, each with a vulnerable and a fixed twin.
 - `--include-risky` and `--allow-host` now reach the hooligans. Everything typed carries the hooligans-runId marker, and the report names it when anything was written.
+- Brute checks whether a login, a signup and a password reset push back after repeated wrong attempts, with made-up accounts and random passwords, at most 30 attempts a minute. It stops at the first 429 or other sign of a limit. A login that a single page app sends from JavaScript is learned by submitting its form once in a browser.
+- The Mob sends a growing crowd of visitors, reading pages and calls only, and stops at the first step where requests fail or the app answers 429. The report shows a chart and a table of each step, and the terminal summary has a line about it. `--load` and `--duration` now set the size and the length of the run.
+- The demo has a login with and without a limit, a signup, a password reset, a login that sends JSON from a page script, and a small pool of connections that gives way under a crowd in the vulnerable twin.
 
 ### Changed
 

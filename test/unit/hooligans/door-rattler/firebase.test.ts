@@ -11,7 +11,10 @@ async function check(route: FakeRoute, host = HOST, confirmed: string[] = [host]
   const http = fakeHttp({ '/.json': route });
   const notes: string[] = [];
   const map = makeMap({ externalHosts: [host], stack: { backends: ['firebase'] } });
-  const findings = await checkFirebase(makeContext(map, http, { confirmedHosts: confirmed }), notes);
+  const findings = await checkFirebase(
+    makeContext(map, http, { confirmedHosts: confirmed }),
+    notes,
+  );
 
   return { findings, notes, http };
 }

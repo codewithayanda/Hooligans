@@ -37,7 +37,12 @@ const search: FuzzTarget = {
 };
 
 function form(action: string, fields: { name: string; type: string }[], method = 'POST') {
-  return { page: 'http://localhost:3000/', action: `http://localhost:3000${action}`, method, fields };
+  return {
+    page: 'http://localhost:3000/',
+    action: `http://localhost:3000${action}`,
+    method,
+    fields,
+  };
 }
 
 describe('findTargets', () => {
@@ -77,7 +82,9 @@ describe('findTargets', () => {
       pages: [{ url: 'http://localhost:3000/search?q=shoes', status: 200, headers: {} }],
     });
 
-    expect(findTargets(map, false).targets.filter((target) => target.path === '/search')).toHaveLength(1);
+    expect(
+      findTargets(map, false).targets.filter((target) => target.path === '/search'),
+    ).toHaveLength(1);
   });
 
   it('leaves out other sites, uploads, and the APIs of Supabase and Next.js', () => {
@@ -88,7 +95,12 @@ describe('findTargets', () => {
         form('/rest/v1/orders', [{ name: 'a', type: 'text' }]),
       ],
       calls: [
-        { method: 'GET', url: 'http://localhost:3000/_next/data/x.json?a=1', status: 200, sentAuth: false },
+        {
+          method: 'GET',
+          url: 'http://localhost:3000/_next/data/x.json?a=1',
+          status: 200,
+          sentAuth: false,
+        },
       ],
     });
 
@@ -161,7 +173,9 @@ describe('fields', () => {
     expect(benignValue({ name: 'a', type: 'text' }, MARKER)).toBe(MARKER);
     expect(benignValue({ name: 'a', type: 'email' }, MARKER)).toBe(`${MARKER}@hooligans.invalid`);
     expect(benignValue({ name: 'a', type: 'number' }, MARKER)).toBe('1');
-    expect(benignValue({ name: 'a', type: 'url' }, MARKER)).toBe(`https://hooligans.invalid/${MARKER}`);
+    expect(benignValue({ name: 'a', type: 'url' }, MARKER)).toBe(
+      `https://hooligans.invalid/${MARKER}`,
+    );
   });
 });
 
@@ -258,7 +272,10 @@ describe('attempt', () => {
 
   it.each<EgressErrorKind>(['budget', 'aborted'])('passes on a %s error', async (kind) => {
     await expect(
-      attempt(failing(new EgressError(kind, 'stop')), { method: 'GET', url: 'http://localhost:3000/a' }),
+      attempt(failing(new EgressError(kind, 'stop')), {
+        method: 'GET',
+        url: 'http://localhost:3000/a',
+      }),
     ).rejects.toMatchObject({ kind });
   });
 });

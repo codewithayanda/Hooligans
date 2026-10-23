@@ -52,7 +52,11 @@ describe('supabaseApis', () => {
     });
 
     expect(supabaseApis(map)).toEqual([
-      { base: 'https://abcd.supabase.co', host: 'abcd.supabase.co', tables: ['orders', 'profiles'] },
+      {
+        base: 'https://abcd.supabase.co',
+        host: 'abcd.supabase.co',
+        tables: ['orders', 'profiles'],
+      },
     ]);
   });
 });
@@ -65,7 +69,9 @@ describe('findPublicKeys', () => {
   });
 
   it('keeps at most three', () => {
-    const body = [1, 2, 3, 4, 5].map((index) => makeJwt({ role: 'anon', ref: `p${index}` })).join(' ');
+    const body = [1, 2, 3, 4, 5]
+      .map((index) => makeJwt({ role: 'anon', ref: `p${index}` }))
+      .join(' ');
 
     expect(findPublicKeys([file(body)])).toHaveLength(3);
   });
@@ -96,7 +102,9 @@ describe('checkSupabase', () => {
       affected: ['orders (Supabase table)'],
     });
     expect(finding?.evidence).toContain('GET http://localhost:3000/rest/v1/orders?limit=1');
-    expect(finding?.evidence).toContain('returned 1 row with the columns id, user_id, total and email');
+    expect(finding?.evidence).toContain(
+      'returned 1 row with the columns id, user_id, total and email',
+    );
     expect(JSON.stringify(findings)).not.toContain('jane@example.com');
     expect(notes).toEqual([]);
   });
@@ -186,7 +194,11 @@ describe('checkSupabase', () => {
   });
 
   it('says so when it cannot find the public key, and reads nothing', async () => {
-    const { findings, notes, http } = await check(local, { '/rest/v1/orders': json(200, [row]) }, []);
+    const { findings, notes, http } = await check(
+      local,
+      { '/rest/v1/orders': json(200, [row]) },
+      [],
+    );
 
     expect(findings).toEqual([]);
     expect(http.requests).toEqual([]);

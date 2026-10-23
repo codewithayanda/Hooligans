@@ -14,7 +14,18 @@ const TEMPLATE_PATH = /[{}]|%7B|%7D/i;
 const OPENAPI_GET = /^OpenAPI lists it: .*\bGET\b/;
 
 /** Keys of an answer that say how a request went rather than hold any data. */
-const NOISE = new Set(['error', 'errors', 'message', 'msg', 'status', 'statuscode', 'detail', 'code', 'success', 'ok']);
+const NOISE = new Set([
+  'error',
+  'errors',
+  'message',
+  'msg',
+  'status',
+  'statuscode',
+  'detail',
+  'code',
+  'success',
+  'ok',
+]);
 
 const DEBUG_PAGES: readonly (DebugHit & { marker: RegExp })[] = [
   {

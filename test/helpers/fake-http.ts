@@ -3,9 +3,7 @@ import { EgressError } from '../../src/guardrails/egress/gate.js';
 
 export type FakeReply = { status?: number; headers?: Record<string, string>; body?: string };
 export type FakeRoute =
-  | FakeReply
-  | 'network-error'
-  | ((request: HttpRequest) => FakeReply | EgressError);
+  FakeReply | 'network-error' | ((request: HttpRequest) => FakeReply | EgressError);
 export type FakeHttp = HttpClient & { requests: HttpRequest[] };
 
 const NOT_FOUND: FakeReply = {
