@@ -1,6 +1,6 @@
 import type { Severity } from '../../core/finding.js';
 import type { Report, Verdict } from '../../core/report.js';
-import { SEVERITY_LABEL, headline, hooliganName } from '../../report/voice.js';
+import { SEVERITY_LABEL, describeLoad, headline, hooliganName } from '../../report/voice.js';
 import { cleanText } from '../../util/text.js';
 import { bold, dim, green, red, yellow } from './color.js';
 
@@ -45,6 +45,10 @@ export function formatSummary(report: Report, htmlPath?: string): string {
         `  ${index + 1}. ${paintSeverity(label)} ${title} (${hooliganName(finding.hooligan)})`,
       );
     });
+  }
+
+  if (report.load) {
+    lines.push('', bold('Load'), `  ${cleanText(describeLoad(report.load), 400)}`);
   }
 
   if (report.skipped.length > 0) {

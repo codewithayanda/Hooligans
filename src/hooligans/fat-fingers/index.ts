@@ -83,7 +83,8 @@ async function run(context: HooliganContext): Promise<HooliganResult> {
   }
 
   const { budget, notes, problems } = tools;
-  if (targets.length === 0) notes.push('Fat Fingers found no form or search field it could type into.');
+  if (targets.length === 0)
+    notes.push('Fat Fingers found no form or search field it could type into.');
   if (budget.broken) notes.push('Fat Fingers stopped early, because the app kept failing.');
   else if (budget.exhausted) notes.push(`Fat Fingers stopped after ${MAX_REQUESTS} requests.`);
 

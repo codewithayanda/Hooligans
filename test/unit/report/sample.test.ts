@@ -69,6 +69,13 @@ describe('the sample report', () => {
     ]);
   });
 
+  it('shows what The Mob saw at each step', () => {
+    const { load } = sample();
+
+    expect(load?.levels.map((level) => level.users)).toEqual([1, 2, 5, 10, 15, 25]);
+    expect(load?.stoppedBy).toBe('finished');
+  });
+
   it('contains nothing that looks like a secret', () => {
     const report = sample();
     const everything = JSON.stringify(report);

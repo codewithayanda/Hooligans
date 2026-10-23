@@ -28,7 +28,8 @@ export type Override = { name: string; value: string };
 const TEXT_TYPES = new Set(['text', 'search', 'email', 'tel', 'url', 'textarea']);
 const NUMBER_TYPES = new Set(['number', 'range']);
 const MANAGED_PATH = /^\/(?:rest|auth|storage|functions)\/v1\/|^\/_next\/|^\/@|^\/node_modules\//;
-const SENSITIVE_PARAM = /^(?:token|key|apikey|api_key|code|sig|signature|session|auth|password|secret)$/i;
+const SENSITIVE_PARAM =
+  /^(?:token|key|apikey|api_key|code|sig|signature|session|auth|password|secret)$/i;
 const PLAIN_NAME = /^[A-Za-z0-9_.-]{1,40}$/;
 
 const MAX_TARGETS = 8;
@@ -142,7 +143,8 @@ export function describeLeft(who: string, left: LeftOut): string | null {
   const parts: string[] = [];
 
   if (left.logins > 0) {
-    const forms = left.logins === 1 ? 'a login or signup form' : `${left.logins} login or signup forms`;
+    const forms =
+      left.logins === 1 ? 'a login or signup form' : `${left.logins} login or signup forms`;
     parts.push(`${forms} (Brute looks at those)`);
   }
   if (left.risky > 0) {
@@ -151,7 +153,9 @@ export function describeLeft(who: string, left: LeftOut): string | null {
   }
   if (left.calls > 0) {
     const calls = left.calls === 1 ? 'a call' : `${left.calls} calls`;
-    parts.push(`${calls} the page makes with a JSON body, because their fields are not visible yet`);
+    parts.push(
+      `${calls} the page makes with a JSON body, because their fields are not visible yet`,
+    );
   }
 
   return parts.length === 0 ? null : `${who} did not type into ${joinWords(parts)}.`;

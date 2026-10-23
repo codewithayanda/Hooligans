@@ -7,7 +7,8 @@ const SIGNS: readonly { engine: string; pattern: RegExp }[] = [
   },
   {
     engine: 'PostgreSQL',
-    pattern: /syntax error at or near|unterminated quoted string|PG::SyntaxError|pg_query\(\)|psycopg2\.errors/i,
+    pattern:
+      /syntax error at or near|unterminated quoted string|PG::SyntaxError|pg_query\(\)|psycopg2\.errors/i,
   },
   { engine: 'SQLite', pattern: /SQLITE_ERROR|SQLite3::SQLException|unrecognized token: "/i },
   {

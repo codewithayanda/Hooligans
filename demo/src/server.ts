@@ -1,10 +1,12 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { pathToFileURL } from 'node:url';
+import { brute } from './routes/brute.js';
 import { doorRattler } from './routes/door-rattler.js';
 import { fatFingers } from './routes/fat-fingers.js';
 import { loudmouth } from './routes/loudmouth.js';
 import { pickpocket } from './routes/pickpocket.js';
+import { theMob } from './routes/the-mob.js';
 import { vandal } from './routes/vandal.js';
 import {
   send,
@@ -15,7 +17,15 @@ import {
 } from './shared/route.js';
 import { productPage, sharedRoutes } from './shared/site.js';
 
-const TWINS: readonly TwinModule[] = [loudmouth, pickpocket, doorRattler, fatFingers, vandal];
+const TWINS: readonly TwinModule[] = [
+  loudmouth,
+  pickpocket,
+  doorRattler,
+  fatFingers,
+  vandal,
+  brute,
+  theMob,
+];
 
 export type DemoOptions = {
   mode: Mode;

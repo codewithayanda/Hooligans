@@ -22,7 +22,11 @@ describe('describeData', () => {
     ['an empty list', [], null],
     ['a list of records', [{ id: 1, email: 'a' }], { items: 1, fields: ['id', 'email'] }],
     ['an error', { error: 'Unauthorized' }, null],
-    ['a list inside a wrapper', { message: 'ok', users: [{ id: 1 }] }, { items: 1, fields: ['id'] }],
+    [
+      'a list inside a wrapper',
+      { message: 'ok', users: [{ id: 1 }] },
+      { items: 1, fields: ['id'] },
+    ],
     ['an empty wrapper', { data: [] }, null],
     ['nobody logged in', { user: null }, null],
     ['a lone number', { count: 5 }, null],
@@ -114,7 +118,9 @@ describe('checkOpenRoutes', () => {
     const routes = {
       '/api/users': json(200, { error: 'Please log in' }),
     };
-    const page = { '/api/users': { headers: { 'content-type': 'text/html' }, body: '<html></html>' } };
+    const page = {
+      '/api/users': { headers: { 'content-type': 'text/html' }, body: '<html></html>' },
+    };
 
     expect(await checkOpenRoutes(makeContext(shopMap(), fakeHttp(routes)))).toEqual([]);
     expect(await checkOpenRoutes(makeContext(shopMap(), fakeHttp(page)))).toEqual([]);
@@ -124,7 +130,9 @@ describe('checkOpenRoutes', () => {
     const http = fakeHttp(siteRoutes('vuln'));
     await checkOpenRoutes(makeContext(shopMap(), http));
 
-    expect(http.requests.map((request) => request.url)).toEqual(['http://localhost:3000/api/users']);
+    expect(http.requests.map((request) => request.url)).toEqual([
+      'http://localhost:3000/api/users',
+    ]);
     expect(http.requests.every((request) => request.method === 'GET')).toBe(true);
     expect(http.requests.every((request) => request.headers === undefined)).toBe(true);
   });
@@ -150,9 +158,21 @@ describe('checkDebugPages', () => {
   });
 
   it.each([
-    ['/phpinfo.php', '<html><head><title>phpinfo()</title></head></html>', 'A phpinfo page is public'],
-    ['/server-status', '<h1>Apache Server Status for localhost</h1>', 'Your Apache status page is public'],
-    ['/console', '<title>Console // Werkzeug Debugger</title>', 'The Flask debugger console is reachable'],
+    [
+      '/phpinfo.php',
+      '<html><head><title>phpinfo()</title></head></html>',
+      'A phpinfo page is public',
+    ],
+    [
+      '/server-status',
+      '<h1>Apache Server Status for localhost</h1>',
+      'Your Apache status page is public',
+    ],
+    [
+      '/console',
+      '<title>Console // Werkzeug Debugger</title>',
+      'The Flask debugger console is reachable',
+    ],
   ])('recognises %s', async (path, body, title) => {
     const http = fakeHttp({ [path]: { headers: { 'content-type': 'text/html' }, body } });
     const findings = await checkDebugPages(makeContext(shopMap(), http));

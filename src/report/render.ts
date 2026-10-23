@@ -1,16 +1,22 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import type { Finding } from '../core/finding.js';
-import type { Report, ScoredFinding } from '../core/report.js';
+import type { LoadLevel, Report, ScoredFinding } from '../core/report.js';
 import { STAGES, type Stage } from '../core/stage.js';
 import { buildMasterPrompt } from '../prompts/build.js';
 import { cleanText, escapeHtml } from '../util/text.js';
-import { SEVERITY_LABEL, dateLabel, headline, hooliganName } from './voice.js';
+import { SEVERITY_LABEL, dateLabel, describeLoad, headline, hooliganName } from './voice.js';
 
 const TOP_COUNT = 5;
 const TONES = ['nothing-serious', 'almost-there', 'risky', 'not-ready'];
 const RING_RADIUS = 52;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+
+const CHART_WIDTH = 640;
+const CHART_LABEL = 96;
+const CHART_BAR_MAX = 420;
+const CHART_ROW = 30;
+const CHART_ROWS = 14;
 
 const COPY_SCRIPT = `
 document.addEventListener('click', function (event) {
@@ -230,6 +236,57 @@ ${list}
 </section>`;
 }
 
+function barClass(level: LoadLevel): string {
+  if (Number(level.errors) > 0) return 'bar-errors';
+  return Number(level.p95Ms) >= 1000 ? 'bar-slow' : 'bar-ok';
+}
+
+/** One bar for each number of users, as long as the slowest typical answer at that step. */
+function loadChart(levels: readonly LoadLevel[]): string {
+  const rows = levels.slice(0, CHART_ROWS);
+  const slowest = Math.max(1, ...rows.map((level) => Number(count(level.p95Ms))));
+
+  const bars = rows.map((level, index) => {
+    const top = index * CHART_ROW + 4;
+    const width = Math.max(4, Math.round((Number(count(level.p95Ms)) / slowest) * CHART_BAR_MAX));
+
+    return `<text class="chart-label" x="0" y="${top + 17}">${count(level.users)} users</text>
+<rect class="bar ${barClass(level)}" x="${CHART_LABEL}" y="${top}" width="${width}" height="22" rx="4"/>
+<text class="chart-value" x="${CHART_LABEL + width + 8}" y="${top + 17}">${count(level.p95Ms)} ms</text>`;
+  });
+
+  return `<svg class="chart" viewBox="0 0 ${CHART_WIDTH} ${rows.length * CHART_ROW + 8}" role="img" aria-label="The slowest typical answer at each number of users">
+${bars.join('\n')}
+</svg>`;
+}
+
+function loadTable(levels: readonly LoadLevel[]): string {
+  const rows = levels
+    .slice(0, CHART_ROWS)
+    .map(
+      (level) =>
+        `<tr><td>${count(level.users)}</td><td>${count(level.requests)}</td><td>${count(level.errors)}</td><td>${count(level.p50Ms)} ms</td><td>${count(level.p95Ms)} ms</td></tr>`,
+    )
+    .join('');
+
+  return `<table class="load-table">
+<thead><tr><th>Users</th><th>Requests</th><th>Errors</th><th>Typical answer</th><th>Slowest typical answer</th></tr></thead>
+<tbody>${rows}</tbody>
+</table>`;
+}
+
+function loadSection(load: Report['load']): string {
+  if (!load || !Array.isArray(load.levels) || load.levels.length === 0) return '';
+
+  return `<section aria-labelledby="load-title">
+<h2 id="load-title">How it held up under load</h2>
+<p>${esc(describeLoad(load), 800)}</p>
+${loadChart(load.levels)}
+${loadTable(load.levels)}
+<p class="meta">The crowd and the app share one machine, so these numbers are relative. They show what gives way first.</p>
+</section>`;
+}
+
 function activitySection(report: Report): string {
   const { activity, run, skipped } = report;
   const stages = run.stagesRun.map(stageLabel).join(', ') || 'none';
@@ -288,6 +345,7 @@ export function renderHtml(report: Report): string {
     topSection(report.findings.slice(0, TOP_COUNT)),
     moreSection(report.findings.slice(TOP_COUNT)),
     lookSection(report.worthALook),
+    loadSection(report.load),
     activitySection(report),
     notLookedAtSection(report.notLookedAt),
     '</main>',

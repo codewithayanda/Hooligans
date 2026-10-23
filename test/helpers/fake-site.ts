@@ -55,7 +55,9 @@ export function siteRoutes(mode: Mode): Record<string, FakeRoute> {
         : json(200, mode === 'vuln' ? [{ id: 1, user_id: 'u-1', total: 12 }] : []),
 
     '/api/users': () =>
-      mode === 'vuln' ? json(200, [{ id: 1, email: 'jane@example.com' }]) : json(401, { error: 'x' }),
+      mode === 'vuln'
+        ? json(200, [{ id: 1, email: 'jane@example.com' }])
+        : json(401, { error: 'x' }),
 
     '/api/contact': (request) => {
       const name = new URLSearchParams(request.body ?? '').get('name') ?? '';

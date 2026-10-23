@@ -10,7 +10,9 @@ const MAX_HOSTS = 3;
 function topLevelNames(body: string): string[] {
   try {
     const data: unknown = JSON.parse(body);
-    return typeof data === 'object' && data !== null && !Array.isArray(data) ? Object.keys(data) : [];
+    return typeof data === 'object' && data !== null && !Array.isArray(data)
+      ? Object.keys(data)
+      : [];
   } catch {
     return [];
   }
@@ -28,7 +30,9 @@ export async function checkFirebase(context: HooliganContext, notes: string[]): 
 
   for (const host of hosts) {
     if (!context.confirmedHosts.includes(host.toLowerCase())) {
-      notes.push(`Door Rattler did not read ${host}, because you did not confirm it is your project.`);
+      notes.push(
+        `Door Rattler did not read ${host}, because you did not confirm it is your project.`,
+      );
       continue;
     }
 

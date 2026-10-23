@@ -3,12 +3,13 @@ import { join } from 'node:path';
 import { defaultCaps, ScanBudget } from '../guardrails/caps.js';
 import { gatherConsent } from '../guardrails/consent.js';
 import { BrowserGuard } from '../guardrails/egress/browser.js';
-import { EgressError, EgressGate } from '../guardrails/egress/gate.js';
+import { EgressError, EgressGate, type ClientOptions } from '../guardrails/egress/gate.js';
 import { createRequestLog } from '../guardrails/egress/request-log.js';
 import { checkTarget, scopeFor } from '../guardrails/scope.js';
 import { buildReport } from '../report/build.js';
 import { serializeReport } from '../report/json.js';
 import { renderHtml } from '../report/render.js';
+import type { CaptureOptions } from '../scout/capture.js';
 import { isBackendHost } from '../scout/fingerprint.js';
 import { AppNotReachable } from '../scout/reach.js';
 import type { ScoutOptions } from '../scout/scout.js';
@@ -16,9 +17,10 @@ import { cleanText } from '../util/text.js';
 import { cleanupMarker, newRunId, runDirectory } from '../util/workspace.js';
 import type { AppMap } from './app-map.js';
 import type { ScanConfig } from './config.js';
+import type { Submission, SubmitCapture } from './context.js';
 import { SEVERITIES, type Finding, type Severity } from './finding.js';
 import type { Hooligan } from './hooligan.js';
-import type { Report } from './report.js';
+import type { LoadSummary, Report } from './report.js';
 import { HOOLIGANS_IN_V01, ROSTER, rosterEntry } from './roster.js';
 import { STAGE_NUMBERS } from './stage.js';
 
@@ -29,6 +31,8 @@ export type ScanDeps = {
   registry: readonly Hooligan[];
   /** Maps the app. The real one drives a browser, tests hand over a map. */
   scout: (options: ScoutOptions) => Promise<AppMap>;
+  /** Submits a login form once in a browser, for Brute. Tests leave it out. */
+  capture?: (options: CaptureOptions) => Promise<Submission | null>;
   /** Asks a yes or no question. Without a terminal it answers no. */
   ask: (question: string) => Promise<boolean>;
   progress: Progress;
@@ -202,12 +206,19 @@ export async function runScan(config: ScanConfig, deps: ScanDeps): Promise<ScanO
     const gate = new EgressGate({ scope: scopeFor(target.origin, consent.confirmedHosts), log });
     gates.push(gate);
 
-    const caps = { ...defaultCaps(), maxUsers: config.users };
+    const caps = { ...defaultCaps(), maxUsers: config.users, loadSeconds: config.seconds };
+
+    const openBrowser = deps.capture;
+    const capture: SubmitCapture | undefined = openBrowser
+      ? (page, values) =>
+          openBrowser({ guard, page, values, ...(deps.signal ? { signal: deps.signal } : {}) })
+      : undefined;
     const sent = (): number => scoutGate.stats().sent + gate.stats().sent + guard.stats().allowed;
 
     const findings: Finding[] = [];
     const gaps: string[] = [];
     const ran: Hooligan[] = [];
+    let load: LoadSummary | undefined;
     let interrupted = false;
 
     for (const stage of consent.stagesToRun) {
@@ -228,18 +239,24 @@ export async function runScan(config: ScanConfig, deps: ScanDeps): Promise<ScanO
 
         try {
           const pace = deps.requestsPerSecond ?? hooligan.requestsPerSecond;
+          const client: ClientOptions = {};
+          if (pace !== undefined) client.requestsPerSecond = pace;
+          if (hooligan.aggregateLog === true) client.aggregateLog = true;
+
           const result = await hooligan.run({
             runId,
             map,
-            http: gate.client(hooligan.id, pace === undefined ? {} : { requestsPerSecond: pace }),
+            http: gate.client(hooligan.id, client),
             caps,
             confirmedHosts: consent.confirmedHosts,
             includeRisky: config.includeRisky,
+            ...(capture ? { capture } : {}),
           });
           findings.push(
             ...result.findings.map((finding) => ({ ...finding, hooligan: hooligan.id })),
           );
           gaps.push(...(result.notLookedAt ?? []));
+          if (result.load) load = result.load;
           ran.push(hooligan);
         } catch (error) {
           const byUser = error instanceof EgressError && error.kind === 'aborted';
@@ -269,6 +286,7 @@ export async function runScan(config: ScanConfig, deps: ScanDeps): Promise<ScanO
       ran: ran.length,
       skipped,
       notLookedAt: describeGaps(map, gaps),
+      ...(load ? { load } : {}),
       activity: {
         requestsSent: sent(),
         requestsBlocked: scoutGate.stats().blocked + gate.stats().blocked + guard.stats().blocked,

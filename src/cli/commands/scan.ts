@@ -3,6 +3,7 @@ import { parseScanOptions, type RawScanOptions, type ScanConfig } from '../../co
 import { runScan, type ScanOutcome } from '../../core/orchestrator.js';
 import { HOOLIGANS } from '../../hooligans/registry.js';
 import { serializeReport } from '../../report/json.js';
+import { captureSubmission } from '../../scout/capture.js';
 import { runScout } from '../../scout/scout.js';
 import { openFile } from '../../util/open-file.js';
 import { createProgress } from '../ui/progress.js';
@@ -24,6 +25,7 @@ async function scanUntilInterrupted(config: ScanConfig, version: string): Promis
     return await runScan(config, {
       registry: HOOLIGANS,
       scout: runScout,
+      capture: captureSubmission,
       ask: askYesNo,
       progress: createProgress(),
       cwd: process.cwd(),

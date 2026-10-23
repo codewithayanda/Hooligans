@@ -1,5 +1,5 @@
 import type { Finding } from '../core/finding.js';
-import type { Report } from '../core/report.js';
+import type { LoadSummary, Report } from '../core/report.js';
 import { buildFixPrompt } from '../prompts/build.js';
 import { maskSecret } from '../util/redact.js';
 import { buildReport } from './build.js';
@@ -158,7 +158,7 @@ function sampleFindings(): Finding[] {
       rootCause: 'the-mob:/api/orders:slow',
       affected: ['GET /api/orders'],
       evidence:
-        'The 95th percentile went from 180 ms to 2.4 s between 8 and 14 users. This was a dev server, so treat the numbers as relative.',
+        'The 95th percentile went from 380 ms at 10 users to 2400 ms at 15 users. This was a dev server, so treat the numbers as relative.',
       fix: 'Look at the query behind GET /api/orders. An index or a smaller response usually helps.',
       problem: 'GET /api/orders gets much slower once about 12 users are on it at the same time.',
       change:
@@ -166,6 +166,35 @@ function sampleFindings(): Finding[] {
       keep: 'The orders page must show the same data.',
     }),
   ];
+}
+
+function sampleLoad(): LoadSummary {
+  const level = (users: number, requests: number, p50Ms: number, p95Ms: number) => ({
+    users,
+    requests,
+    errors: 0,
+    timeouts: 0,
+    pushedBack: 0,
+    p50Ms,
+    p95Ms,
+  });
+
+  return {
+    peakUsers: 25,
+    levels: [
+      level(1, 8, 120, 150),
+      level(2, 17, 125, 160),
+      level(5, 41, 140, 190),
+      level(10, 80, 180, 380),
+      level(15, 118, 900, 2400),
+      level(25, 140, 2100, 5200),
+    ],
+    stoppedBy: 'finished',
+    breakAt: null,
+    weakSpot: null,
+    recovered: null,
+    routes: ['GET /', 'GET /api/orders', 'GET /api/products'],
+  };
 }
 
 export type SampleOptions = { runId: string; version: string; now?: Date };
@@ -196,6 +225,7 @@ export function buildSampleReport(options: SampleOptions): Report {
       'What your own server does with the requests it receives, such as calls to Stripe or OpenAI.',
       'Whether the database behind the app holds real customer data.',
     ],
+    load: sampleLoad(),
     activity: {
       requestsSent: 412,
       requestsBlocked: 3,
